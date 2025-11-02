@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-black text-white py-6 shadow-lg">
+        <div class="container mx-auto px-4 md:px-6 max-w-7xl">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl md:text-2xl font-bold">{% if is_edit %}Edit Product{% else %}Add New Product{% endif %}</h1>
+                <div class="flex space-x-2">
+                    <a href="/admin" class="bg-gray-700 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm md:text-base">
+                        ← Dashboard
+                    </a>
+                    <a href="/admin/products" class="bg-gray-700 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm md:text-base">
+                        Products
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 md:px-6 py-8 max-w-7xl">
+        <form id="product-form" class="bg-white rounded-xl shadow-md p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Product Name -->
+                    <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Product Name *
+                        </label>
+                        <input type="text" id="product-name" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            Category *
+                        </label>
+                        <select id="category-select" onchange="loadSubcategories()" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                            <option value="">Select Category</option>
+                            {% for category in categories %}
+                            <option value="{{ category.category_id }}">{{ category.category_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Subcategory -->
+                    <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                            </svg>
+                            Subcategory *
+                        </label>
+                        <select id="subcategory-select" onchange="loadSpecs()" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                            <option value="">Select Subcategory</option>
+                        </select>
+                    </div>
+
+                    <!-- Price -->
+                    <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Regular Price (ALL) *
+                        </label>
+                        <input type="number" id="product-price" step="0.01" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                    </div>
+
+                    <!-- Discount Price -->
+                    <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Discount Price (ALL)
+                        </label>
+                        <input type="number" id="product-discount-price" step="0.01"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">Leave empty if no discount</p>
+                    </div>
+
+                    <!-- Special Offer -->
+                    <div class="flex items-center">
+                        <input type="checkbox" id="is-special" class="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-600">
+                        <label for="is-special" class="ml-3 text-sm font-semibold text-gray-700">
+                            Mark as Special Offer
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Description -->
+                    <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"/>
+                            </svg>
+                            Description
+                        </label>
+                        <textarea id="product-description" rows="4"
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"></textarea>
+                    </div>
+
+                    <!-- Main Image URL -->
+                     <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Main Image URL
+                        </label>
+                        <input type="text" id="main-image"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                               placeholder="/static/uploads/image.png">
+                    </div>
+
+                    <!-- Additional Images -->
+                    <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Additional Images (comma-separated URLs)
+                        </label>
+                        <textarea id="additional-images" rows="3"
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                  placeholder="/static/uploads/img1.png, /static/uploads/img2.png"></textarea>
+                    </div>
+
+                    <!-- Tags -->
+                    <div>
+                        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Search Tags (comma-separated)
+                        </label>
+                        <input type="text" id="product-tags"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                               placeholder="auto, parts, accessories">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specifications Section -->
+            <div class="mt-8">
+                <h3 class="text-lg font-bold text-black mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    Product Specifications
+                </h3>
+                <div id="specs-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p class="text-gray-500 col-span-full">Select a subcategory to load specifications</p>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-8 flex justify-end space-x-4">
+                <a href="/admin" class="bg-gray-300 text-black px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium">
+                    {% if is_edit %}Update Product{% else %}Save Product{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const categoriesData = {{ categories | tojson }};
+        const isEdit = {{ 'true' if is_edit else 'false' }};
+        const productData = {{ product | tojson if is_edit else '{}' }};
+        
+        // Load existing product data if editing
+        window.addEventListener('DOMContentLoaded', function() {
+            if (isEdit && productData) {
+               // Fill basic fields
+               document.getElementById('product-name').value = productData.product_name || '';
+               document.getElementById('product-description').value = productData.description || '';
+                document.getElementById('product-price').value = productData.price || '';
+                document.getElementById('product-discount-price').value = productData.discount_price || '';
+                document.getElementById('is-special').checked = productData.is_special || false;
+                document.getElementById('main-image').value = productData.main_image || '';
+                document.getElementById('additional-images').value = productData.image_urls || '';
+                document.getElementById('product-tags').value = productData.tags || '';
+                
+                // Load category and subcategory
+                document.getElementById('category-select').value = productData.category_id;
+                loadSubcategories();
+                
+                // Wait for subcategories to load, then set value and load specs
+                setTimeout(() => {
+                    document.getElementById('subcategory-select').value = productData.subcategory_id;
+                    loadSpecs(); // This will now handle populating the spec values
+                }, 300);
+            }
+        });
+
+
+        function loadSubcategories() {
+            const categoryId = document.getElementById('category-select').value;
+            const subcategorySelect = document.getElementById('subcategory-select');
+            
+            subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+            document.getElementById('specs-container').innerHTML = '<p class="text-gray-500 col-span-full">Select a subcategory to load specifications</p>';
+            
+            if (!categoryId) return;
+            
+            const category = categoriesData.find(c => c.category_id == categoryId);
+            if (category && category.subcategories) {
+                category.subcategories.forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub.subcategory_id;
+                    option.textContent = sub.subcategory_name;
+                    subcategorySelect.appendChild(option);
+                });
+            }
+        }
+        
+        async function loadSpecs() {
+            const subcategoryId = document.getElementById('subcategory-select').value;
+            const container = document.getElementById('specs-container');
+    
+            if (!subcategoryId) {
+                container.innerHTML = '<p class="text-gray-500 col-span-full">Select a subcategory to load specifications</p>';
+                return;
+            }
+    
+            try {
+                const response = await fetch(`/api/admin/subcategory/${subcategoryId}/specs`);
+                const specs = await response.json();
+        
+                container.innerHTML = '';
+        
+                if (specs.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 col-span-full">No specifications defined for this subcategory</p>';
+                    return;
+                }
+        
+                specs.forEach(spec => {
+                    const div = document.createElement('div');
+                    div.className = 'space-y-2';
+            
+                    const label = document.createElement('label');
+                    label.className = 'block text-sm font-medium text-gray-700';
+                    label.textContent = spec.name;
+                    div.appendChild(label);
+            
+                    if (spec.choices && spec.choices.length > 0) {
+                        // For brands, use checkbox list
+                        if (spec.name === 'E pershtatshme per') {
+                            const checkboxContainer = document.createElement('div');
+                            checkboxContainer.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50';
+                            checkboxContainer.dataset.spectypeId = spec.id;
+                            checkboxContainer.dataset.isCheckboxGroup = 'true';
+                    
+                            spec.choices.forEach(choice => {
+                                const label = document.createElement('label');
+                                label.className = 'flex items-center space-x-2 cursor-pointer hover:bg-white p-2 rounded border border-transparent hover:border-red-200';
+                        
+                                const checkbox = document.createElement('input');
+                                checkbox.type = 'checkbox';
+                                checkbox.value = choice.trim();
+                                checkbox.className = 'w-4 h-4 text-red-600 rounded focus:ring-red-500';
+                        
+                                const span = document.createElement('span');
+                                span.textContent = choice.trim();
+                                span.className = 'text-sm';
+                        
+                                label.appendChild(checkbox);
+                                label.appendChild(span);
+                                checkboxContainer.appendChild(label);
+                            });
+                    
+                            const helperText = document.createElement('p');
+                            helperText.className = 'text-xs text-gray-500 mt-2';
+                            helperText.textContent = 'Select all compatible brands (you can select multiple)';
+                    
+                            div.appendChild(checkboxContainer);
+                            div.appendChild(helperText);
+                        } else {
+                            // Regular dropdown for other specs
+                            const select = document.createElement('select');
+                            select.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent';
+                            select.dataset.spectypeId = spec.id;
+                    
+                            const defaultOption = document.createElement('option');
+                            defaultOption.value = '';
+                            defaultOption.textContent = `Select ${spec.name}`;
+                            select.appendChild(defaultOption);
+                    
+                            spec.choices.forEach(choice => {
+                                const option = document.createElement('option');
+                                option.value = choice.trim();
+                                option.textContent = choice.trim();
+                                select.appendChild(option);
+                            });
+                    
+                            div.appendChild(select);
+                        }
+                    } else {
+                        // Text input for specs without choices
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent';
+                        input.dataset.spectypeId = spec.id;
+                        input.placeholder = `Enter ${spec.name}`;
+                        div.appendChild(input);
+                    }
+            
+                    container.appendChild(div);
+                });
+        
+                // If editing, populate the spec values after specs are loaded
+                if (isEdit && productData && productData.specs) {
+                    setTimeout(() => {
+                        productData.specs.forEach(spec => {
+                            const container = document.querySelector(`[data-spectype-id="${spec.spectype_id}"]`);
+                    
+                            if (container) {
+                                if (container.dataset.isCheckboxGroup === 'true') {
+                                    // Handle checkbox groups
+                                    const values = spec.value.split(',').map(v => v.trim());
+                                    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+                                    checkboxes.forEach(cb => {
+                                        if (values.includes(cb.value)) {
+                                           cb.checked = true;
+                                        }
+                                    });
+                                } else {
+                                    // Handle regular inputs/selects
+                                    container.value = spec.value;
+                                }
+                            }
+                        });
+                    }, 100);
+                }
+        
+            } catch (error) {
+                console.error('Failed to load specs:', error);
+                container.innerHTML = '<p class="text-red-500 col-span-full">Failed to load specifications</p>';
+            }
+        }
+        
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Gather spec values
+            const specs = [];
+            
+            // Handle regular inputs and selects
+            const specInputs = document.querySelectorAll('#specs-container input[type="text"], #specs-container select:not([multiple])');
+            specInputs.forEach(input => {
+                if (input.value && input.dataset.spectypeId) {
+                    specs.push({
+                        spectype_id: input.dataset.spectypeId,
+                        value: input.value
+                    });
+                }
+            });
+            
+            // Handle checkbox groups (for brands)
+            const checkboxContainers = document.querySelectorAll('#specs-container [data-is-checkbox-group="true"]');
+            checkboxContainers.forEach(container => {
+                const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+                if (checkboxes.length > 0) {
+                    const values = Array.from(checkboxes).map(cb => cb.value);
+                    specs.push({
+                        spectype_id: container.dataset.spectypeId,
+                        value: values.join(', ')
+                    });
+                }
+            });
+            
+            // Gather form data
+            const formData = {
+                name: document.getElementById('product-name').value,
+                description: document.getElementById('product-description').value,
+                price: document.getElementById('product-price').value,
+                discount_price: document.getElementById('product-discount-price').value || null,
+                is_special: document.getElementById('is-special').checked,
+                subcategory_id: document.getElementById('subcategory-select').value,
+                main_image: document.getElementById('main-image').value,
+                image_urls: document.getElementById('additional-images').value,
+                tags: document.getElementById('product-tags').value,
+                specs: specs
+            };
+            
+            try {
+                const url = isEdit ? `/api/admin/product/${productData.product_id}` : '/api/admin/product';
+                const method = isEdit ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(isEdit ? 'Product updated successfully!' : 'Product created successfully!');
+                    window.location.href = '/admin/products';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to save product');
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
