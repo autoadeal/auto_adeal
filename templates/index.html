@@ -3,6 +3,46 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- Preload critical resources -->
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+
+  <!-- SEO Meta Tags -->
+  <title>Auto Adeal - Aksesore dhe Pjese per Makina ne Shqiperi | Cilesi e larte dhe Cmime te uleta</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/favicon/favicon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon/favicon-512.png">
+
+  <meta name="description" content="Blej pjese dhe aksesore per makina online ne Shqiperi dhe Kosove. Cilesi e larte, Cmime te uleta, dergese e shpejte. Produkte per te gjitha markat: VW, BMW, Audi, Mercedes, Toyota dhe me shume.">
+  <meta name="keywords" content="pjese, makine, makinash, aksesore, auto, parts, shqiperi, pjese, kembimi, online, butona, sinjale, doreza, leva, leve, marshi, pastrim, detajim, coolant, rezervuar, depozite">
+  <meta name="author" content="Auto Adeal">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://autoadeal.com">
+  
+  <!-- Language -->
+  <meta http-equiv="content-language" content="sq-AL">
+  <html lang="sq">
+  
+  <!-- Open Graph (Facebook/Instagram) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Auto Adeal - Pjese per Makina Shqiperi">
+  <meta property="og:description" content="Blej pjese dhe aksesore per makina me cilesi te larte dhe cmime te uleta.">
+  <meta property="og:image" content="https://autoadeal.com/static/logo.png">
+  <meta property="og:url" content="https://autoadeal.com">
+  <meta property="og:site_name" content="Auto Adeal">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Auto Adeal - Pjese per Makina Shqiperi">
+  <meta name="twitter:description" content="Blej pjese dhe aksesore per makina me cilesi te larte dhe cmime te uleta.">
+  <meta name="twitter:image" content="https://autoadeal.com/static/logo.png">
+  
   <style>
 /* Critical CSS - Load first to prevent glitching */
 header {
@@ -43,59 +83,6 @@ header input {
     right: -0.5rem;
     min-width: 1.25rem;
     min-height: 1.25rem;
-}
-
-/* Scroll to Top Button */
-#scroll-to-top-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background: #dc2626;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 9999;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-    transition: all 0.3s ease;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transform: scale(0.8);
-}
-
-#scroll-to-top-btn.show {
-    display: flex;
-    opacity: 1;
-    transform: scale(1);
-}
-
-#scroll-to-top-btn:hover {
-    background: #b91c1c;
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
-}
-
-#scroll-to-top-btn:active {
-    transform: scale(0.95);
-}
-
-/* Mobile adjustments */
-@media (max-width: 767px) {
-    #scroll-to-top-btn {
-        width: 45px;
-        height: 45px;
-        bottom: 15px;
-        right: 15px;
-    }
-    
-    #scroll-to-top-btn svg {
-        width: 20px;
-        height: 20px;
-    }
 }
 </style>
   <title>Auto Adeal</title>
@@ -445,7 +432,41 @@ header input {
         }
 
     </style>
+
+    <!-- Organization Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AutoPartsStore",
+    "name": "Auto Adeal",
+    "image": "https://autoadeal.com/static/logo.png",
+    "url": "https://autoadeal.com",
+    "telephone": "+355685526714",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Sarande",
+      "addressCountry": "AL"
+    },
+    "priceRange": "$$",
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "opens": "00:00",
+      "closes": "23:59"
+    }
+  }
+  </script>
+  
   <style>@view-transition { navigation: auto; }</style>
+    
  </head>
  <body class="h-full bg-white overflow-x-hidden"><!-- Header -->
   <header class="bg-black text-white py-3 md:py-4" style="min-height: 64px; position: relative; z-index: 100;">
@@ -1712,6 +1733,14 @@ async function showProductDetail(productId) {
     try {
         const response = await fetch(`/api/product/${productId}`);
         const product = await response.json();
+
+        // UPDATE SEO META TAGS
+        document.title = `${product.name} - Auto Adeal | Çmimi ${formatPrice(product.discount_price || product.price)}`;
+        updateMetaTag('description', `Blej ${product.name} online. ${product.description || ''} Cmimi: ${formatPrice(product.discount_price || product.price)}. Dergesa ne Shqiperi dhe Kosove.`);
+        updateMetaTag('og:title', `${product.name} - Auto Adeal`);
+        updateMetaTag('og:description', product.description || `Blej ${product.name} me cmim te mire`);
+        updateMetaTag('og:image', product.main_image || '/static/logo.png');
+        updateMetaTag('og:url', `https://autoadeal.com/#product/${productId}`);
         
         // Hide all pages
         document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
@@ -1873,10 +1902,51 @@ async function showProductDetail(productId) {
         previousPage = currentPage;
         currentPage = 'product-detail';
         window.history.pushState({ page: 'product-detail', productId: productId }, '', `/#product/${productId}`);
+
+        // ADD PRODUCT SCHEMA FOR GOOGLE
+        const schema = {
+            "@context": "https://schema.org/",
+            "@type": "Product",
+            "name": product.name,
+            "image": product.main_image || '/static/logo.png',
+            "description": product.description || product.name,
+            "sku": `PROD-${product.id}`,
+            "brand": {
+                "@type": "Brand",
+                "name": "Auto Adeal"
+            },
+            "offers": {
+                "@type": "Offer",
+                "url": `https://autoadeal.com/#product/${product.id}`,
+                "priceCurrency": "ALL",
+                "price": product.discount_price || product.price,
+                "availability": product.sold_out ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+                "seller": {
+                    "@type": "Organization",
+                    "name": "Auto Adeal"
+                }
+            }
+        };
+        
+        // Remove old schema if exists
+        const oldSchema = document.getElementById('product-schema');
+        if (oldSchema) oldSchema.remove();
+        
+        // Add new schema
+        const script = document.createElement('script');
+        script.id = 'product-schema';
+        script.type = 'application/ld+json';
+        script.text = JSON.stringify(schema);
+        document.head.appendChild(script);
+        
+        previousPage = currentPage;
+        currentPage = 'product-detail';
+        window.history.pushState({ page: 'product-detail', productId: productId }, '', `/#product/${productId}`);
     } catch (error) {
         console.error('❌ Failed to load product detail:', error);
-        showNotification('Dështoi ngarkimi i detajeve të produktit', 'error');
-    }
+        showNotification('Deshtoi ngarkimi i detajeve te produktit', 'error');
+    } 
+    
 }
 
 // ============================================
@@ -2984,37 +3054,26 @@ function showNotification(message, type = 'success') {
 }
 
 // ============================================
-// SCROLL TO TOP BUTTON
+// SEO HELPER FUNCTIONS
 // ============================================
-(function() {
-    const scrollBtn = document.getElementById('scroll-to-top-btn');
-    
-    if (!scrollBtn) return;
-    
-    // Show/hide button based on scroll position
-    function toggleScrollButton() {
-        if (window.pageYOffset > 300) {
-            scrollBtn.classList.add('show');
-        } else {
-            scrollBtn.classList.remove('show');
-        }
+function updateMetaTag(name, content) {
+    // Try property first (for og: tags)
+    let meta = document.querySelector(`meta[property="${name}"]`);
+    if (!meta) {
+        // Try name attribute
+        meta = document.querySelector(`meta[name="${name}"]`);
     }
-    
-    // Scroll to top smoothly
-    function scrollToTop() {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+    if (meta) {
+        meta.setAttribute('content', content);
     }
-    
-    // Event listeners
-    window.addEventListener('scroll', toggleScrollButton, { passive: true });
-    scrollBtn.addEventListener('click', scrollToTop);
-    
-    // Check on load
-    toggleScrollButton();
-})();
+}
+
+function updatePageSEO(title, description) {
+    document.title = title;
+    updateMetaTag('description', description);
+    updateMetaTag('og:title', title);
+    updateMetaTag('og:description', description);
+}
 
 // ============================================
 // INITIALIZE ON PAGE LOAD
@@ -3022,12 +3081,5 @@ function showNotification(message, type = 'success') {
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 </script>
-
-<!-- Scroll to Top Button -->
-<button id="scroll-to-top-btn" aria-label="Scroll to top">
-  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
-  </svg>
-</button>
 </body>
 </html>

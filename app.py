@@ -8,6 +8,9 @@ import secrets
 import random
 import os
 
+
+
+app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 # ---------------- CONFIG ----------------
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
