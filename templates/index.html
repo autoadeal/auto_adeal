@@ -1684,6 +1684,11 @@ async function showProductDetail(productId) {
     try {
         const response = await fetch(`/api/product/${productId}`);
         const product = await response.json();
+        
+        // SAVE CURRENT STATE BEFORE HIDING
+        const wasOnHomePage = document.getElementById('home-page').style.display !== 'none';
+        const currentProductsContainer = document.getElementById('products-container').innerHTML;
+        const currentProductsTitle = document.getElementById('products-title').textContent;
 
         // UPDATE SEO META TAGS
         document.title = `${product.name} - Auto Adeal | Çmimi ${formatPrice(product.discount_price || product.price)}`;
@@ -1890,6 +1895,14 @@ async function showProductDetail(productId) {
         script.text = JSON.stringify(schema);
         document.head.appendChild(script);
         
+        // Store state for going back
+        window.previousPageState = {
+            page: currentPage,
+            productsHTML: currentProductsContainer,
+            productsTitle: currentProductsTitle,
+            wasHome: wasOnHomePage
+        };
+
         previousPage = currentPage;
         currentPage = 'product-detail';
         window.history.pushState({ page: 'product-detail', productId: productId }, '', `/#product/${productId}`);
@@ -2909,24 +2922,28 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 function goBack() {
-    // Hide product detail page
+    // Get stored state
+    const savedState = window.previousPageState;
+    
+    // Hide product detail
     document.getElementById('product-detail-page').style.display = 'none';
     
-    // Show the previous page and load its content
-    if (previousPage === 'home') {
-        showPage('home');
-        loadPopularProducts();
-    } else if (previousPage === 'special-offers') {
-        showPage('special-offers');
-        loadSpecialOffers();
-    } else if (previousPage === 'brands') {
-        showPage('brands');
-        loadBrandsPage();
-    } else if (previousPage === 'brand-products') {
-        // Go back to brands page instead
-        showPage('brands');
-        loadBrandsPage();
+    // Restore previous page
+    if (savedState && savedState.wasHome) {
+        // Restore home page with products
+        document.getElementById('home-page').style.display = 'block';
+        document.getElementById('products-container').innerHTML = savedState.productsHTML;
+        document.getElementById('products-title').textContent = savedState.productsTitle;
+        
+        // Show sidebar on desktop
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && window.innerWidth >= 768) {
+            sidebar.style.display = 'block';
+        }
+        
+        currentPage = 'home';
     } else {
+        // Fallback to showPage
         showPage(previousPage);
     }
 }
@@ -3059,6 +3076,14 @@ function updatePageSEO(title, description) {
         }
         
         console.log('✅ Scroll button initialized');
+        console.log('Button element:', scrollBtn);
+        console.log('Button computed style:', window.getComputedStyle(scrollBtn));
+        
+        // TEMPORARY: Force button visible for testing
+        setTimeout(() => {
+            scrollBtn.classList.add('show');
+            console.log('🧪 Forced button visible for testing');
+        }, 1000);
         
         // Show/hide button based on scroll position
         function toggleScrollButton() {
