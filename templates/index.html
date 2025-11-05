@@ -45,7 +45,6 @@
   
   <style>
 
-/* Scroll to Top Button */
 #scroll-to-top-btn {
     position: fixed;
     bottom: 20px;
@@ -59,27 +58,29 @@
     cursor: pointer;
     z-index: 9999;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    visibility: hidden;
-    transform: scale(0.8);
+    transform: translateY(100px);
     pointer-events: none;
 }
 
 #scroll-to-top-btn.show {
     opacity: 1;
-    visibility: visible;
-    transform: scale(1);
+    transform: translateY(0);
     pointer-events: auto;
 }
 
 #scroll-to-top-btn:hover {
     background: #b91c1c;
-    transform: scale(1.1);
+    transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
+}
+
+#scroll-to-top-btn.show:hover {
+    transform: translateY(-2px);
 }
 
 #scroll-to-top-btn:active {
@@ -144,121 +145,6 @@ header input {
 </style>
   <title>Auto Adeal</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/_sdk/data_sdk.js"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <!-- Fallback for Canva SDKs when running locally -->
-<script>
-  // If the real Canva SDKs aren't present, provide simple local implementations
-  // that match the minimal methods your app calls: init, create, update, delete.
-  (function () {
-    // Helper: load stored items from localStorage
-    function loadStored() {
-      try {
-        return JSON.parse(localStorage.getItem('canva_data') || '[]');
-      } catch (e) {
-        return [];
-      }
-    }
-    function saveStored(arr) {
-      localStorage.setItem('canva_data', JSON.stringify(arr));
-    }
-
-    // Minimal dataSdk stub
-    if (!window.dataSdk) {
-      window.dataSdk = {
-        async init(handler) {
-          // store handler so we can notify on changes
-          this._handler = handler || null;
-          // ensure storage exists
-          if (!localStorage.getItem('canva_data')) saveStored([]);
-          // Immediately call onDataChanged with existing data (if handler provided)
-          if (this._handler && typeof this._handler.onDataChanged === 'function') {
-            try { this._handler.onDataChanged(loadStored()); } catch (e) { console.error(e); }
-          }
-          return { isOk: true };
-        },
-        // create: adds an item and notifies
-        async create(item) {
-          const stored = loadStored();
-          // add an id if not present
-          const id = item.__localId || ('local_' + Date.now() + '_' + Math.floor(Math.random()*10000));
-          const toStore = Object.assign({ __localId: id }, item);
-          stored.push(toStore);
-          saveStored(stored);
-          if (this._handler && typeof this._handler.onDataChanged === 'function') {
-            try { this._handler.onDataChanged(stored); } catch (e) { console.error(e); }
-          }
-          return { isOk: true, data: toStore };
-        },
-        // delete: accepts either an object from stored data or an object with productId/type
-        async delete(target) {
-          const stored = loadStored();
-          let removed = false;
-          // if target has __localId, remove by that
-          if (target && target.__localId) {
-            const idx = stored.findIndex(x => x.__localId === target.__localId);
-            if (idx !== -1) { stored.splice(idx,1); removed = true; }
-          } else if (target && target.productId) {
-            // remove first matching by type and productId
-            const idx = stored.findIndex(x => x.type === target.type && x.productId === target.productId);
-            if (idx !== -1) { stored.splice(idx,1); removed = true; }
-          }
-          if (removed) {
-            saveStored(stored);
-            if (this._handler && typeof this._handler.onDataChanged === 'function') {
-              try { this._handler.onDataChanged(stored); } catch (e) { console.error(e); }
-            }
-            return { isOk: true };
-          }
-          return { isOk: false, error: 'not_found' };
-        },
-        // update: merges fields for the item
-        async update(target) {
-          const stored = loadStored();
-          if (!target) return { isOk: false, error: 'no_target' };
-          // find by __localId or by productId + type
-          let idx = -1;
-          if (target.__localId) idx = stored.findIndex(x => x.__localId === target.__localId);
-          if (idx === -1 && target.productId) idx = stored.findIndex(x => x.productId === target.productId && x.type === target.type);
-          if (idx !== -1) {
-            stored[idx] = Object.assign({}, stored[idx], target);
-            saveStored(stored);
-            if (this._handler && typeof this._handler.onDataChanged === 'function') {
-              try { this._handler.onDataChanged(stored); } catch (e) { console.error(e); }
-            }
-            return { isOk: true, data: stored[idx] };
-          }
-          return { isOk: false, error: 'not_found' };
-        },
-        // convenience: list all
-        async list() {
-          return { isOk: true, data: loadStored() };
-        }
-      };
-      console.info('Using local dataSdk fallback (localStorage).');
-    }
-
-    // Minimal elementSdk stub
-    if (!window.elementSdk) {
-      window.elementSdk = {
-        async init(cfg) {
-          // If config has a render function, call it with defaultConfig to populate UI
-          try {
-            if (cfg && typeof cfg.render === 'function') {
-              // pass cfg.defaultConfig (like Canva would)
-              await cfg.render(cfg.defaultConfig || {});
-            }
-          } catch (e) {
-            console.error('elementSdk fallback render error', e);
-          }
-          // Return an object similar to the real SDK
-          return { isOk: true };
-        }
-      };
-      console.info('Using local elementSdk fallback.');
-    }
-  })();
-</script>
   <style>
         /* Prevent flash of unstyled content */
         .page-content {
@@ -960,7 +846,7 @@ header input {
       <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
     </svg>
   </button>
-  
+
   <script>
 // ============================================
 // GLOBAL STATE & CONFIGURATION
