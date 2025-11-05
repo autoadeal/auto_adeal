@@ -8,8 +8,6 @@ import secrets
 import random
 import os
 
-
-
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 # ---------------- CONFIG ----------------
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -22,7 +20,24 @@ app = Flask(__name__)
 app.secret_key = "auto_adeal_secret_change_this"
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=72)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/auto_adeal'
+import os
+
+# Get database URL from environment variable
+DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('MYSQL_URL')
+
+# Debug: print what we got (remove this later)
+print(f"🔍 DATABASE_URL from env: {DATABASE_URL}")
+
+# Convert mysql:// to mysql+pymysql:// if needed
+if DATABASE_URL:
+    if DATABASE_URL.startswith('mysql://'):
+        DATABASE_URL = DATABASE_URL.replace('mysql://', 'mysql+pymysql://', 1)
+    print(f"✅ Using Railway database: {DATABASE_URL[:30]}...")
+else:
+    print("⚠️ No DATABASE_URL found, using localhost")
+
+# Use environment variable or fallback to local
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL or 'mysql+pymysql://root:@localhost/auto_adeal'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -1081,7 +1096,83 @@ def admin_settings():
     """Site settings page"""
     return render_template('admin_settings.html')
 
+@app.route('/sitemap.xml')
+def sitemap():
+    """Generate dynamic sitemap for SEO"""
+    from flask import make_response
+    
+    pages = []
+    
+    # Homepage
+    pages.append({
+        'loc': 'https://autoadeal.com/',
+        'lastmod': datetime.now().strftime('%Y-%m-%d'),
+        'changefreq': 'daily',
+        'priority': '1.0'
+    })
+    
+    # Static pages
+    static_pages = [
+        ('/#special-offers', '0.9', 'daily'),
+        ('/#brands', '0.8', 'weekly'),
+        ('/#contact', '0.7', 'monthly'),
+    ]
+    
+    for url, priority, freq in static_pages:
+        pages.append({
+            'loc': f'https://autoadeal.com{url}',
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': freq,
+            'priority': priority
+        })
+    
+    # All products
+    products = Product.query.filter(Product.main_image.isnot(None)).all()
+    for product in products:
+        pages.append({
+            'loc': f'https://autoadeal.com/#product/{product.product_id}',
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'weekly',
+            'priority': '0.8'
+        })
+    
+    # Generate XML
+    sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    for page in pages:
+        sitemap_xml += '  <url>\n'
+        sitemap_xml += f'    <loc>{page["loc"]}</loc>\n'
+        sitemap_xml += f'    <lastmod>{page["lastmod"]}</lastmod>\n'
+        sitemap_xml += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
+        sitemap_xml += f'    <priority>{page["priority"]}</priority>\n'
+        sitemap_xml += '  </url>\n'
+    
+    sitemap_xml += '</urlset>'
+    
+    response = make_response(sitemap_xml)
+    response.headers["Content-Type"] = "application/xml"
+    return response
+
+@app.route('/robots.txt')
+def robots():
+    """Tell search engines what to crawl"""
+    from flask import make_response
+    
+    robots_txt = """User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/auth/
+
+Sitemap: https://autoadeal.com/sitemap.xml
+"""
+    
+    response = make_response(robots_txt)
+    response.headers["Content-Type"] = "text/plain"
+    return response
+
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
