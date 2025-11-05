@@ -44,6 +44,63 @@
   <meta name="twitter:image" content="https://autoadeal.com/static/logo.png">
   
   <style>
+
+/* Scroll to Top Button */
+#scroll-to-top-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.8);
+    pointer-events: none;
+}
+
+#scroll-to-top-btn.show {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
+#scroll-to-top-btn:hover {
+    background: #b91c1c;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
+}
+
+#scroll-to-top-btn:active {
+    transform: scale(0.95);
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+    #scroll-to-top-btn {
+        width: 45px;
+        height: 45px;
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    #scroll-to-top-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
 /* Critical CSS - Load first to prevent glitching */
 header {
     position: relative;
@@ -896,6 +953,14 @@ header input {
     </form>
    </div>
   </div>
+
+  <!-- Scroll to Top Button -->
+  <button id="scroll-to-top-btn" aria-label="Scroll to top">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+    </svg>
+  </button>
+  
   <script>
 // ============================================
 // GLOBAL STATE & CONFIGURATION
@@ -2958,7 +3023,26 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 function goBack() {
-    showPage(previousPage);
+    // Hide product detail page
+    document.getElementById('product-detail-page').style.display = 'none';
+    
+    // Show the previous page and load its content
+    if (previousPage === 'home') {
+        showPage('home');
+        loadPopularProducts();
+    } else if (previousPage === 'special-offers') {
+        showPage('special-offers');
+        loadSpecialOffers();
+    } else if (previousPage === 'brands') {
+        showPage('brands');
+        loadBrandsPage();
+    } else if (previousPage === 'brand-products') {
+        // Go back to brands page instead
+        showPage('brands');
+        loadBrandsPage();
+    } else {
+        showPage(previousPage);
+    }
 }
 
 function showWishlist() {
@@ -3074,6 +3158,54 @@ function updatePageSEO(title, description) {
     updateMetaTag('og:title', title);
     updateMetaTag('og:description', description);
 }
+
+// ============================================
+// SCROLL TO TOP BUTTON
+// ============================================
+(function() {
+    // Wait for DOM to be fully loaded
+    function initScrollButton() {
+        const scrollBtn = document.getElementById('scroll-to-top-btn');
+        
+        if (!scrollBtn) {
+            console.warn('⚠️ Scroll button not found');
+            return;
+        }
+        
+        console.log('✅ Scroll button initialized');
+        
+        // Show/hide button based on scroll position
+        function toggleScrollButton() {
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.add('show');
+            } else {
+                scrollBtn.classList.remove('show');
+            }
+        }
+        
+        // Scroll to top smoothly
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        // Event listeners
+        window.addEventListener('scroll', toggleScrollButton, { passive: true });
+        scrollBtn.addEventListener('click', scrollToTop);
+        
+        // Check on load
+        toggleScrollButton();
+    }
+    
+    // Initialize after page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initScrollButton);
+    } else {
+        initScrollButton();
+    }
+})();
 
 // ============================================
 // INITIALIZE ON PAGE LOAD
