@@ -1682,6 +1682,9 @@ function createProductCard(product, hideActions = false) {
 // ============================================
 async function showProductDetail(productId) {
     try {
+        // Scroll to top immediately
+        window.scrollTo(0, 0);
+        
         const response = await fetch(`/api/product/${productId}`);
         const product = await response.json();
         
@@ -2814,6 +2817,9 @@ async function applyFilters() {
 // PAGE NAVIGATION
 // ============================================
 function showPage(pageId, addToHistory = true) {
+    // Scroll to top when changing pages
+    window.scrollTo(0, 0);
+
     // Hide all pages
     document.querySelectorAll('.page-content').forEach(page => {
         page.style.display = 'none';
@@ -2928,22 +2934,39 @@ function goBack() {
     // Hide product detail
     document.getElementById('product-detail-page').style.display = 'none';
     
-    // Restore previous page
-    if (savedState && savedState.wasHome) {
-        // Restore home page with products
-        document.getElementById('home-page').style.display = 'block';
-        document.getElementById('products-container').innerHTML = savedState.productsHTML;
-        document.getElementById('products-title').textContent = savedState.productsTitle;
-        
-        // Show sidebar on desktop
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar && window.innerWidth >= 768) {
-            sidebar.style.display = 'block';
+    // Restore previous page based on what it was
+    if (savedState) {
+        if (savedState.page === 'home' && savedState.productsHTML) {
+            // Restore home page with products
+            document.getElementById('home-page').style.display = 'block';
+            document.getElementById('products-container').innerHTML = savedState.productsHTML;
+            document.getElementById('products-title').textContent = savedState.productsTitle;
+            
+            // Show sidebar on desktop
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && window.innerWidth >= 768) {
+                sidebar.style.display = 'block';
+            }
+            
+            currentPage = 'home';
+        } else if (savedState.page === 'special-offers') {
+            // Go back to special offers and reload
+            showPage('special-offers');
+            loadSpecialOffers();
+        } else if (savedState.page === 'brands') {
+            // Go back to brands and reload
+            showPage('brands');
+            loadBrandsPage();
+        } else if (savedState.page === 'brand-products') {
+            // Go back to brands page
+            showPage('brands');
+            loadBrandsPage();
+        } else {
+            // Fallback
+            showPage(savedState.page);
         }
-        
-        currentPage = 'home';
     } else {
-        // Fallback to showPage
+        // No saved state, use previousPage
         showPage(previousPage);
     }
 }
@@ -3095,16 +3118,17 @@ function updatePageSEO(title, description) {
         }
         
         // Scroll to top smoothly
-        function scrollToTop() {
+        scrollBtn.onclick = function(e) {
+            e.preventDefault();
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
             });
-        }
-        
-        // Event listeners
+            console.log('🔝 Scrolling to top');
+        };
+
+        // Show/hide on scroll
         window.addEventListener('scroll', toggleScrollButton, { passive: true });
-        scrollBtn.addEventListener('click', scrollToTop);
         
         // Check on load
         toggleScrollButton();
