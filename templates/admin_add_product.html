@@ -268,8 +268,8 @@
                     div.appendChild(label);
             
                     if (spec.choices && spec.choices.length > 0) {
-                        // For brands, use checkbox list
-                        if (spec.name === 'E pershtatshme per') {
+                        // For brands, ALWAYS use checkbox list
+                        if (spec.name === 'E pershtatshme per' || spec.value_type === 'checkbox') {
                             const checkboxContainer = document.createElement('div');
                             checkboxContainer.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50';
                             checkboxContainer.dataset.spectypeId = spec.id;

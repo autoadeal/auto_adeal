@@ -989,11 +989,23 @@ def api_admin_subcategory_specs(subcategory_id):
     sub = Subcategory.query.get_or_404(subcategory_id)
     specs = []
     for st in sub.spec_types:
+        # Use predefined choices if spec name matches known types
+        choices = []
+        if st.choices:
+            choices = st.choices.split(',')
+        
+        # Override with predefined choices for known types
+        if st.name == 'E pershtatshme per':
+            choices = ['Volkswagen', 'BMW', 'Audi', 'Mercedes-Benz', 'Toyota', 'Ford', 
+                      'Skoda', 'Porsche', 'SEAT', 'Opel', 'Fiat', 'Range Rover', 
+                      'Tesla', 'Hyundai', 'Citroën', 'MINI', 'Honda', 'Peugeot', 
+                      'Renault', 'Nissan', 'Volvo', 'Mazda']
+        
         specs.append({
             'id': st.id,
             'name': st.name,
             'value_type': st.value_type,
-            'choices': st.choices.split(',') if st.choices else []
+            'choices': choices
         })
     return jsonify(specs)
 

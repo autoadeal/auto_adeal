@@ -62,10 +62,14 @@
     display: none;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 #scroll-to-top-btn.show {
-    display: flex !important;
+    opacity: 1;
+    transform: scale(1);
 }
 
 #scroll-to-top-btn:hover {
@@ -1107,6 +1111,14 @@ async function initializeApp() {
     // Load categories
     await loadCategories();
     
+    // Set initial history state if none exists
+    if (!window.history.state) {
+        window.history.replaceState({ 
+            page: 'home',
+            timestamp: Date.now()
+        }, '', '/');
+    }
+    
     // Check URL and load appropriate page
     const hash = window.location.hash.substring(1);
     if (hash.startsWith('product/')) {
@@ -1419,6 +1431,10 @@ function showPriceOnlyFilters() {
 // ============================================
 async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
     try {
+        // Scroll to top
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
 
         // Hide banner when navigating to subcategory
         const banner = document.getElementById('home-banner');
@@ -1494,6 +1510,11 @@ function loadBrandsPage() {
 
 async function showBrandProducts(brandName) {
     try {
+        // Scroll to top immediately
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
+        
         const response = await fetch(`/api/brands/${encodeURIComponent(brandName)}/products`);
         const products = await response.json();
         
@@ -1523,7 +1544,18 @@ async function showBrandProducts(brandName) {
         
         previousPage = currentPage;
         currentPage = 'brand-products';
-        window.history.pushState({ page: 'brand-products', brand: brandName }, '', `/#brand/${brandName}`);
+        window.history.pushState({ 
+            page: 'brand-products', 
+            brandName: brandName,
+            timestamp: Date.now()
+        }, '', `/#brand/${encodeURIComponent(brandName)}`);
+        
+        // Force scroll again
+        setTimeout(() => {
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            window.scrollTo(0, 0);
+        }, 0);
     } catch (error) {
         console.error('❌ Failed to load brand products:', error);
         showNotification('Dështoi ngarkimi i produkteve të markës', 'error');
@@ -1666,12 +1698,10 @@ function createProductCard(product, hideActions = false) {
 // ============================================
 async function showProductDetail(productId) {
     try {
-        // CRITICAL: Scroll to top IMMEDIATELY
-        window.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: 'instant'
-        });
+        // CRITICAL: Scroll to top IMMEDIATELY and synchronously
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
 
         const response = await fetch(`/api/product/${productId}`);
         const product = await response.json();
@@ -1886,21 +1916,20 @@ async function showProductDetail(productId) {
         script.text = JSON.stringify(schema);
         document.head.appendChild(script);
         
-        // Store state for going back
-        window.previousPageState = {
-            page: currentPage,
-            productsHTML: currentProductsContainer,
-            productsTitle: currentProductsTitle,
-            wasHome: wasOnHomePage
-        };
-
         previousPage = currentPage;
         currentPage = 'product-detail';
         window.history.pushState({ 
             page: 'product-detail', 
             productId: productId,
-            from: previousPage
+            timestamp: Date.now()
         }, '', `/#product/${productId}`);
+        
+        // Force scroll to top again
+        setTimeout(() => {
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            window.scrollTo(0, 0);
+        }, 0);
     } catch (error) {
         console.error('❌ Failed to load product detail:', error);
         showNotification('Dështoi ngarkimi i detajeve të produktit', 'error');
@@ -2808,12 +2837,10 @@ async function applyFilters() {
 // PAGE NAVIGATION
 // ============================================
 function showPage(pageId, addToHistory = true) {
-    // CRITICAL: Scroll to top FIRST
-    window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-    });
+    // CRITICAL: Scroll to top IMMEDIATELY and synchronously
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo(0, 0);
     
     // Hide all pages
     document.querySelectorAll('.page-content').forEach(page => {
@@ -2845,7 +2872,7 @@ function showPage(pageId, addToHistory = true) {
         const url = pageId === 'home' ? '/' : `/#${pageId}`;
         window.history.pushState({ 
             page: pageId,
-            scrollY: 0
+            timestamp: Date.now()
         }, '', url);
     }
     
@@ -2893,20 +2920,26 @@ function showPage(pageId, addToHistory = true) {
             loadWishlistPage();
             break;
     }
+    // Force scroll to top again after a tick
+    setTimeout(() => {
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
+    }, 0);
 }
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function(event) {
-    // Scroll to top on any history navigation
-    window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-    });
+    // Scroll to top IMMEDIATELY
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo(0, 0);
     
     if (event.state && event.state.page) {
         if (event.state.page === 'product-detail' && event.state.productId) {
             showProductDetail(event.state.productId);
+        } else if (event.state.page === 'brand-products' && event.state.brandName) {
+            showBrandProducts(event.state.brandName);
         } else {
             showPage(event.state.page, false);
         }
@@ -2916,6 +2949,9 @@ window.addEventListener('popstate', function(event) {
         if (hash.startsWith('product/')) {
             const productId = hash.split('/')[1];
             showProductDetail(parseInt(productId));
+        } else if (hash.startsWith('brand/')) {
+            const brandName = decodeURIComponent(hash.split('/')[1]);
+            showBrandProducts(brandName);
         } else if (hash) {
             showPage(hash, false);
         } else {
@@ -2924,19 +2960,7 @@ window.addEventListener('popstate', function(event) {
     }
 });
 
-// Handle page load with hash
-window.addEventListener('DOMContentLoaded', function() {
-    const hash = window.location.hash.substring(1);
-    if (hash) {
-        showPage(hash, false);
-    } else {
-        // Set initial history state
-        window.history.replaceState({ page: 'home' }, '', '/');
-    }
-});
-
 function goBack() {
-    // Use browser history instead of manual navigation
     window.history.back();
 }
 
@@ -3057,7 +3081,7 @@ function updatePageSEO(title, description) {
 // ============================================
 // SCROLL TO TOP BUTTON
 // ============================================
-window.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const scrollBtn = document.getElementById('scroll-to-top-btn');
     
     if (!scrollBtn) {
@@ -3067,13 +3091,30 @@ window.addEventListener('DOMContentLoaded', function() {
     
     console.log('✅ Scroll button initialized');
     
-    // Show/hide on scroll
+    // Show/hide on scroll with throttling for better performance
+    let scrollTimeout;
     function checkScroll() {
-        if (window.scrollY > 300) {
-            scrollBtn.classList.add('show');
-        } else {
-            scrollBtn.classList.remove('show');
+        if (scrollTimeout) {
+            window.cancelAnimationFrame(scrollTimeout);
         }
+        
+        scrollTimeout = window.requestAnimationFrame(function() {
+            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollY > 300) {
+                scrollBtn.style.display = 'flex';
+                // Force reflow
+                scrollBtn.offsetHeight;
+                scrollBtn.classList.add('show');
+            } else {
+                scrollBtn.classList.remove('show');
+                setTimeout(() => {
+                    if (!scrollBtn.classList.contains('show')) {
+                        scrollBtn.style.display = 'none';
+                    }
+                }, 300);
+            }
+        });
     }
     
     window.addEventListener('scroll', checkScroll, { passive: true });
