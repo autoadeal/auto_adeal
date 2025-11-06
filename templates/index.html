@@ -45,6 +45,7 @@
   
   <style>
 
+/* Scroll to Top Button */
 #scroll-to-top-btn {
     position: fixed;
     bottom: 20px;
@@ -56,49 +57,32 @@
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    z-index: 9999;
+    z-index: 99999;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-    transition: all 0.3s ease;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transform: translateY(100px);
-    pointer-events: none;
 }
 
 #scroll-to-top-btn.show {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
+    display: flex !important;
 }
 
 #scroll-to-top-btn:hover {
     background: #b91c1c;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
-}
-
-#scroll-to-top-btn.show:hover {
-    transform: translateY(-2px);
+    transform: scale(1.1);
 }
 
 #scroll-to-top-btn:active {
     transform: scale(0.95);
 }
 
-/* Mobile adjustments */
 @media (max-width: 767px) {
     #scroll-to-top-btn {
         width: 45px;
         height: 45px;
-        bottom: 15px;
+        bottom: 80px;
         right: 15px;
-    }
-    
-    #scroll-to-top-btn svg {
-        width: 20px;
-        height: 20px;
     }
 }
 
@@ -1682,11 +1666,26 @@ function createProductCard(product, hideActions = false) {
 // ============================================
 async function showProductDetail(productId) {
     try {
-        // Scroll to top immediately
-        window.scrollTo(0, 0);
-        
+        // CRITICAL: Scroll to top IMMEDIATELY
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'instant'
+        });
+
         const response = await fetch(`/api/product/${productId}`);
         const product = await response.json();
+  
+        // Hide all pages
+        document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
+        // Hide mobile filters on product detail
+        const mobileFiltersContainer = document.getElementById('mobile-filters-container');
+        if (mobileFiltersContainer) mobileFiltersContainer.style.display = 'none';
+        document.getElementById('product-detail-page').style.display = 'block';
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.style.display = 'none';
+
+        const container = document.getElementById('product-detail-content');
         
         // SAVE CURRENT STATE BEFORE HIDING
         const wasOnHomePage = document.getElementById('home-page').style.display !== 'none';
@@ -1700,17 +1699,6 @@ async function showProductDetail(productId) {
         updateMetaTag('og:description', product.description || `Blej ${product.name} me cmim te mire`);
         updateMetaTag('og:image', product.main_image || '/static/logo.png');
         updateMetaTag('og:url', `https://autoadeal.com/#product/${productId}`);
-        
-        // Hide all pages
-        document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
-        // Hide mobile filters on product detail
-        const mobileFiltersContainer = document.getElementById('mobile-filters-container');
-        if (mobileFiltersContainer) mobileFiltersContainer.style.display = 'none';
-        document.getElementById('product-detail-page').style.display = 'block';
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.style.display = 'none';
-        
-        const container = document.getElementById('product-detail-content');
         
         const mainImageURL = product.main_image || '/static/uploads/default.png';
         const priceDisplay = product.discount_price && product.discount_price < product.price
@@ -1908,12 +1896,15 @@ async function showProductDetail(productId) {
 
         previousPage = currentPage;
         currentPage = 'product-detail';
-        window.history.pushState({ page: 'product-detail', productId: productId }, '', `/#product/${productId}`);
+        window.history.pushState({ 
+            page: 'product-detail', 
+            productId: productId,
+            from: previousPage
+        }, '', `/#product/${productId}`);
     } catch (error) {
         console.error('❌ Failed to load product detail:', error);
-        showNotification('Deshtoi ngarkimi i detajeve te produktit', 'error');
-    } 
-    
+        showNotification('Dështoi ngarkimi i detajeve të produktit', 'error');
+    }
 }
 
 // ============================================
@@ -2817,9 +2808,13 @@ async function applyFilters() {
 // PAGE NAVIGATION
 // ============================================
 function showPage(pageId, addToHistory = true) {
-    // Scroll to top when changing pages
-    window.scrollTo(0, 0);
-
+    // CRITICAL: Scroll to top FIRST
+    window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+    });
+    
     // Hide all pages
     document.querySelectorAll('.page-content').forEach(page => {
         page.style.display = 'none';
@@ -2831,11 +2826,11 @@ function showPage(pageId, addToHistory = true) {
     
     // Show/hide sidebar (desktop only)
     const sidebar = document.getElementById('sidebar');
-    if (['special-offers', 'brands', 'contact', 'checkout', 'wishlist', 'cart'].includes(pageId)) {
+    if (['special-offers', 'brands', 'contact', 'checkout', 'wishlist', 'cart', 'brand-products', 'product-detail'].includes(pageId)) {
         sidebar.style.display = 'none';
     } else {
-        // Only show sidebar on desktop
-        if (window.innerWidth >= 768) {
+        // Only show sidebar on desktop for home page
+        if (window.innerWidth >= 768 && pageId === 'home') {
             sidebar.style.display = 'block';
         } else {
             sidebar.style.display = 'none';
@@ -2848,10 +2843,13 @@ function showPage(pageId, addToHistory = true) {
     // Add to browser history
     if (addToHistory) {
         const url = pageId === 'home' ? '/' : `/#${pageId}`;
-        window.history.pushState({ page: pageId }, '', url);
+        window.history.pushState({ 
+            page: pageId,
+            scrollY: 0
+        }, '', url);
     }
     
-    // Show selected page
+    // Show selected page and load content
     switch(pageId) {
         case 'home':
             document.getElementById('home-page').style.display = 'block';
@@ -2861,10 +2859,6 @@ function showPage(pageId, addToHistory = true) {
             if (banner && bannerImg && bannerImg.src && bannerImg.src !== window.location.href) {
                 banner.classList.remove('hidden');
             }
-            // Hide mobile filters on home
-            const mobileFiltersContainer = document.getElementById('mobile-filters-container');
-            if (mobileFiltersContainer) mobileFiltersContainer.style.display = 'none';
-            
             // Only show desktop categories on desktop
             if (window.innerWidth >= 768) {
                 showCategories();
@@ -2903,12 +2897,26 @@ function showPage(pageId, addToHistory = true) {
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function(event) {
+    // Scroll to top on any history navigation
+    window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+    });
+    
     if (event.state && event.state.page) {
-        showPage(event.state.page, false);
+        if (event.state.page === 'product-detail' && event.state.productId) {
+            showProductDetail(event.state.productId);
+        } else {
+            showPage(event.state.page, false);
+        }
     } else {
         // If no state, check URL hash
         const hash = window.location.hash.substring(1);
-        if (hash) {
+        if (hash.startsWith('product/')) {
+            const productId = hash.split('/')[1];
+            showProductDetail(parseInt(productId));
+        } else if (hash) {
             showPage(hash, false);
         } else {
             showPage('home', false);
@@ -2928,47 +2936,8 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 function goBack() {
-    // Get stored state
-    const savedState = window.previousPageState;
-    
-    // Hide product detail
-    document.getElementById('product-detail-page').style.display = 'none';
-    
-    // Restore previous page based on what it was
-    if (savedState) {
-        if (savedState.page === 'home' && savedState.productsHTML) {
-            // Restore home page with products
-            document.getElementById('home-page').style.display = 'block';
-            document.getElementById('products-container').innerHTML = savedState.productsHTML;
-            document.getElementById('products-title').textContent = savedState.productsTitle;
-            
-            // Show sidebar on desktop
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar && window.innerWidth >= 768) {
-                sidebar.style.display = 'block';
-            }
-            
-            currentPage = 'home';
-        } else if (savedState.page === 'special-offers') {
-            // Go back to special offers and reload
-            showPage('special-offers');
-            loadSpecialOffers();
-        } else if (savedState.page === 'brands') {
-            // Go back to brands and reload
-            showPage('brands');
-            loadBrandsPage();
-        } else if (savedState.page === 'brand-products') {
-            // Go back to brands page
-            showPage('brands');
-            loadBrandsPage();
-        } else {
-            // Fallback
-            showPage(savedState.page);
-        }
-    } else {
-        // No saved state, use previousPage
-        showPage(previousPage);
-    }
+    // Use browser history instead of manual navigation
+    window.history.back();
 }
 
 function showWishlist() {
@@ -3088,59 +3057,40 @@ function updatePageSEO(title, description) {
 // ============================================
 // SCROLL TO TOP BUTTON
 // ============================================
-(function() {
-    // Wait for DOM to be fully loaded
-    function initScrollButton() {
-        const scrollBtn = document.getElementById('scroll-to-top-btn');
-        
-        if (!scrollBtn) {
-            console.warn('⚠️ Scroll button not found');
-            return;
-        }
-        
-        console.log('✅ Scroll button initialized');
-        console.log('Button element:', scrollBtn);
-        console.log('Button computed style:', window.getComputedStyle(scrollBtn));
-        
-        // TEMPORARY: Force button visible for testing
-        setTimeout(() => {
-            scrollBtn.classList.add('show');
-            console.log('🧪 Forced button visible for testing');
-        }, 1000);
-        
-        // Show/hide button based on scroll position
-        function toggleScrollButton() {
-            if (window.pageYOffset > 300) {
-                scrollBtn.classList.add('show');
-            } else {
-                scrollBtn.classList.remove('show');
-            }
-        }
-        
-        // Scroll to top smoothly
-        scrollBtn.onclick = function(e) {
-            e.preventDefault();
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-            console.log('🔝 Scrolling to top');
-        };
-
-        // Show/hide on scroll
-        window.addEventListener('scroll', toggleScrollButton, { passive: true });
-        
-        // Check on load
-        toggleScrollButton();
+window.addEventListener('DOMContentLoaded', function() {
+    const scrollBtn = document.getElementById('scroll-to-top-btn');
+    
+    if (!scrollBtn) {
+        console.error('❌ Scroll button not found');
+        return;
     }
     
-    // Initialize after page loads
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initScrollButton);
-    } else {
-        initScrollButton();
+    console.log('✅ Scroll button initialized');
+    
+    // Show/hide on scroll
+    function checkScroll() {
+        if (window.scrollY > 300) {
+            scrollBtn.classList.add('show');
+        } else {
+            scrollBtn.classList.remove('show');
+        }
     }
-})();
+    
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    
+    // Click to scroll top
+    scrollBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+    
+    // Check initially
+    checkScroll();
+});
 
 // ============================================
 // INITIALIZE ON PAGE LOAD

@@ -7,6 +7,7 @@ from functools import wraps
 import secrets
 import random
 import os
+import psutil
 
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 # ---------------- CONFIG ----------------
@@ -187,6 +188,18 @@ def format_product(product):
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route('/health')
+def health():
+    """Monitor app health"""
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    
+    return {
+        'status': 'healthy',
+        'memory_mb': round(mem_info.rss / 1024 / 1024, 2),
+        'cpu_percent': process.cpu_percent()
+    }
 
 # ---------------- API ENDPOINTS ----------------
 

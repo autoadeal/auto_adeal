@@ -274,29 +274,29 @@
                             checkboxContainer.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50';
                             checkboxContainer.dataset.spectypeId = spec.id;
                             checkboxContainer.dataset.isCheckboxGroup = 'true';
-                    
+                            
                             spec.choices.forEach(choice => {
                                 const label = document.createElement('label');
                                 label.className = 'flex items-center space-x-2 cursor-pointer hover:bg-white p-2 rounded border border-transparent hover:border-red-200';
-                        
+                                
                                 const checkbox = document.createElement('input');
                                 checkbox.type = 'checkbox';
                                 checkbox.value = choice.trim();
                                 checkbox.className = 'w-4 h-4 text-red-600 rounded focus:ring-red-500';
-                        
+                                
                                 const span = document.createElement('span');
                                 span.textContent = choice.trim();
                                 span.className = 'text-sm';
-                        
+                                
                                 label.appendChild(checkbox);
                                 label.appendChild(span);
                                 checkboxContainer.appendChild(label);
                             });
-                    
+                            
                             const helperText = document.createElement('p');
                             helperText.className = 'text-xs text-gray-500 mt-2';
-                            helperText.textContent = 'Select all compatible brands (you can select multiple)';
-                    
+                            helperText.textContent = 'Select all compatible brands (multiple selection enabled)';
+                            
                             div.appendChild(checkboxContainer);
                             div.appendChild(helperText);
                         } else {
