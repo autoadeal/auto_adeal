@@ -1456,9 +1456,13 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
         renderProducts(products);
         
         console.log('✅ Subcategory loaded:', subcategoryName, products.length, 'products');
-
+        
         // Load filters for this subcategory
         await loadSubcategoryFilters(subcategoryId);
+        
+        // UPDATE currentPage BEFORE adding to history
+        previousPage = currentPage;
+        currentPage = 'subcategory';
         
         // Only add to history if not coming from popstate
         if (!window.isNavigatingHistory) {
@@ -1468,7 +1472,7 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
                 subcategoryName: subcategoryName,
                 timestamp: Date.now()
             }, '', `/#subcategory/${subcategoryId}/${encodeURIComponent(subcategoryName)}`);
-            console.log('➕ Added to history: subcategory', subcategoryId, subcategoryName);
+            console.log('➕ Added to history: subcategory', subcategoryId, subcategoryName, '| currentPage is now:', currentPage);
         } else {
             console.log('⏭️ Skipped history add (navigating via popstate)');
         }
@@ -1732,6 +1736,12 @@ async function showProductDetail(productId) {
         // Hide all pages FIRST
         document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
         
+        // Hide sidebar and mobile filters
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.style.display = 'none';
+        const mobileFiltersContainer = document.getElementById('mobile-filters-container');
+        if (mobileFiltersContainer) mobileFiltersContainer.style.display = 'none';
+        
         // Then scroll to top
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
@@ -1739,13 +1749,11 @@ async function showProductDetail(productId) {
 
         const response = await fetch(`/api/product/${productId}`);
         const product = await response.json();
+        
         console.log('📦 Product API response:', product);
-        // Hide mobile filters on product detail
-        const mobileFiltersContainer = document.getElementById('mobile-filters-container');
-        if (mobileFiltersContainer) mobileFiltersContainer.style.display = 'none';
+  
+        // Show product detail page
         document.getElementById('product-detail-page').style.display = 'block';
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.style.display = 'none';
 
         const container = document.getElementById('product-detail-content');
         
@@ -2962,7 +2970,8 @@ function showPage(pageId, addToHistory = true) {
     
     previousPage = currentPage;
     currentPage = pageId;
-    
+    console.log('📄 Page changed:', previousPage, '→', currentPage);
+
     // Add to browser history
     if (addToHistory) {
         const url = pageId === 'home' ? '/' : `/#${pageId}`;
@@ -3229,48 +3238,49 @@ function updatePageSEO(title, description) {
 // ============================================
 // SCROLL TO TOP BUTTON
 // ============================================
-window.addEventListener('load', function() {
-    const scrollBtn = document.getElementById('scroll-to-top-btn');
+(function() {
+    let scrollBtn;
     
-    if (!scrollBtn) {
-        console.error('❌ Scroll button not found');
-        return;
-    }
-    
-    console.log('✅ Scroll button initialized');
-    
-    // Show/hide based on scroll
-    function checkScroll() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    function init() {
+        scrollBtn = document.getElementById('scroll-to-top-btn');
         
-        if (scrollTop > 300) {
-            scrollBtn.classList.add('visible');
-        } else {
-            scrollBtn.classList.remove('visible');
+        if (!scrollBtn) {
+            console.error('❌ Scroll button not found');
+            return;
         }
+        
+        console.log('✅ Scroll button found');
+        
+        // Scroll detection
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+            
+            if (scrollTop > 300) {
+                scrollBtn.classList.add('visible');
+                console.log('👁️ Scroll button now visible at', scrollTop);
+            } else {
+                scrollBtn.classList.remove('visible');
+            }
+        }, { passive: true });
+        
+        // Click handler
+        scrollBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🔝 Scrolling to top');
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            window.scrollTo(0, 0);
+        });
+        
+        console.log('✅ Scroll button initialized');
     }
     
-    // Attach scroll listener
-    window.addEventListener('scroll', checkScroll, { passive: true });
-    
-    // Click handler - DIRECT DOM EVENT
-    scrollBtn.onclick = function() {
-        console.log('🔝 Scroll button clicked!');
-        
-        // Try multiple methods
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        window.scrollTo(0, 0);
-        
-        console.log('🔝 Scroll executed');
-        return false;
-    };
-    
-    // Initial check
-    checkScroll();
-    
-    console.log('✅ Scroll button click handler attached');
-});
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
 
 // ============================================
 // INITIALIZE ON PAGE LOAD
