@@ -1444,9 +1444,9 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
         const banner = document.getElementById('home-banner');
         if (banner) banner.classList.add('hidden');
 
-        // First switch to home page if not already there
-        if (currentPage !== 'home') {
-            showPage('home', false); // Don't add to history yet
+        // Switch to home page if not already there
+        if (currentPage !== 'home' && currentPage !== 'subcategory') {
+            showPage('home', false);
         }
         
         const response = await fetch(`/api/subcategory/${subcategoryId}/products`);
@@ -1460,11 +1460,14 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
         // Load filters for this subcategory
         await loadSubcategoryFilters(subcategoryId);
         
-        // UPDATE currentPage BEFORE adding to history
+        // UPDATE currentPage FIRST
         previousPage = currentPage;
         currentPage = 'subcategory';
         
-        // Only add to history if not coming from popstate
+        console.log('📄 CurrentPage updated:', previousPage, '→', currentPage);
+        console.log('📄 Current window.history.state BEFORE push:', window.history.state);
+        
+        // ALWAYS add to history (unless coming from popstate)
         if (!window.isNavigatingHistory) {
             window.history.pushState({
                 page: 'subcategory',
@@ -1472,13 +1475,12 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
                 subcategoryName: subcategoryName,
                 timestamp: Date.now()
             }, '', `/#subcategory/${subcategoryId}/${encodeURIComponent(subcategoryName)}`);
-            console.log('➕ Added to history: subcategory', subcategoryId, subcategoryName, '| currentPage is now:', currentPage);
+            
+            console.log('➕ Added to history: subcategory', subcategoryId, subcategoryName);
+            console.log('📄 Current window.history.state AFTER push:', window.history.state);
         } else {
             console.log('⏭️ Skipped history add (navigating via popstate)');
         }
-        
-        previousPage = currentPage;
-        currentPage = 'subcategory';
     } catch (error) {
         console.error('❌ Failed to load products:', error);
         showNotification('Ngarkimi i produkteve deshtoi', 'error');
@@ -3240,6 +3242,7 @@ function updatePageSEO(title, description) {
 // ============================================
 (function() {
     let scrollBtn;
+    let lastScroll = 0;
     
     function init() {
         scrollBtn = document.getElementById('scroll-to-top-btn');
@@ -3249,17 +3252,33 @@ function updatePageSEO(title, description) {
             return;
         }
         
-        console.log('✅ Scroll button found');
+        console.log('✅ Scroll button element:', scrollBtn);
         
-        // Scroll detection
+        // Force hide initially
+        scrollBtn.style.opacity = '0';
+        scrollBtn.style.visibility = 'hidden';
+        scrollBtn.style.pointerEvents = 'none';
+        
+        // Scroll detection - using inline styles
         window.addEventListener('scroll', function() {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
             
+            // Debug every scroll
+            if (Math.abs(scrollTop - lastScroll) > 50) {
+                console.log('📜 Scroll position:', scrollTop);
+                lastScroll = scrollTop;
+            }
+            
             if (scrollTop > 300) {
-                scrollBtn.classList.add('visible');
-                console.log('👁️ Scroll button now visible at', scrollTop);
+                scrollBtn.style.opacity = '1';
+                scrollBtn.style.visibility = 'visible';
+                scrollBtn.style.transform = 'scale(1)';
+                scrollBtn.style.pointerEvents = 'auto';
             } else {
-                scrollBtn.classList.remove('visible');
+                scrollBtn.style.opacity = '0';
+                scrollBtn.style.visibility = 'hidden';
+                scrollBtn.style.transform = 'scale(0.8)';
+                scrollBtn.style.pointerEvents = 'none';
             }
         }, { passive: true });
         
