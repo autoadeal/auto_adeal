@@ -3250,42 +3250,23 @@ function updatePageSEO(title, description) {
         
         console.log('✅ Scroll button element:', scrollBtn);
         
-        // Force hide initially
-        scrollBtn.style.opacity = '0';
-        scrollBtn.style.visibility = 'hidden';
-        scrollBtn.style.pointerEvents = 'none';
-        
         // Scroll detection - using inline styles
         window.addEventListener('scroll', function() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
-            
-            // Debug every scroll
-            if (Math.abs(scrollTop - lastScroll) > 50) {
-                console.log('📜 Scroll position:', scrollTop);
-                lastScroll = scrollTop;
-            }
-            
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
             if (scrollTop > 300) {
-                scrollBtn.style.opacity = '1';
-                scrollBtn.style.visibility = 'visible';
-                scrollBtn.style.transform = 'scale(1)';
-                scrollBtn.style.pointerEvents = 'auto';
+                scrollBtn.classList.add('visible');
             } else {
-                scrollBtn.style.opacity = '0';
-                scrollBtn.style.visibility = 'hidden';
-                scrollBtn.style.transform = 'scale(0.8)';
-                scrollBtn.style.pointerEvents = 'none';
+                scrollBtn.classList.remove('visible');
             }
         }, { passive: true });
         
         // Click handler
-        scrollBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('🔝 Scrolling to top');
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-            window.scrollTo(0, 0);
+        scrollBtn.addEventListener('click', function() {
+            console.log('🔝 Scrolling to top (smooth)');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
         
         console.log('✅ Scroll button initialized');
     }
