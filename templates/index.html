@@ -1461,6 +1461,9 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
                 subcategoryName: subcategoryName,
                 timestamp: Date.now()
             }, '', `/#subcategory/${subcategoryId}/${encodeURIComponent(subcategoryName)}`);
+            console.log('➕ Added to history: subcategory', subcategoryId, subcategoryName);
+        } else {
+            console.log('⏭️ Skipped history add (navigating via popstate)');
         }
         
         previousPage = currentPage;
@@ -1565,6 +1568,10 @@ async function showBrandProducts(brandName) {
                 brandName: brandName,
                 timestamp: Date.now()
             }, '', `/#brand/${encodeURIComponent(brandName)}`);
+            console.log('➕ Added to history: brand', brandName);
+        } else {
+            console.log('⏭️ Skipped history add (navigating via popstate)');
+            currentPage = 'brand-products';
         }
         
         // Force scroll again
@@ -1725,6 +1732,7 @@ async function showProductDetail(productId) {
 
         const response = await fetch(`/api/product/${productId}`);
         const product = await response.json();
+        console.log('📦 Product API response:', product);
         // Hide mobile filters on product detail
         const mobileFiltersContainer = document.getElementById('mobile-filters-container');
         if (mobileFiltersContainer) mobileFiltersContainer.style.display = 'none';
@@ -1937,7 +1945,7 @@ async function showProductDetail(productId) {
         script.text = JSON.stringify(schema);
         document.head.appendChild(script);
         
-        console.log('✅ Product detail loaded:', product.product_name);
+        console.log('✅ Product detail loaded:', product.name || product.product_name);
 
         // Attach thumbnail click handlers
         setTimeout(() => {
@@ -1975,6 +1983,10 @@ async function showProductDetail(productId) {
                 productId: productId,
                 timestamp: Date.now()
             }, '', `/#product/${productId}`);
+            console.log('➕ Added to history: product', productId);
+        } else {
+            console.log('⏭️ Skipped history add (navigating via popstate)');
+            currentPage = 'product-detail';
         }
         
         // Force scroll to top again
@@ -3018,31 +3030,43 @@ window.addEventListener('popstate', function(event) {
         }
     }
     
-    // Clear flag
+    // Clear flag after navigation completes
     setTimeout(() => {
         window.isNavigatingHistory = false;
-    }, 200);
+        console.log('🏁 Navigation flag cleared');
+    }, 500);
 });
 
 // Helper function to handle navigation
 function handleNavigation(state) {
+    console.log('🔄 Handling navigation to:', state.page);
+    
     switch(state.page) {
         case 'product-detail':
-            if (state.productId) showProductDetail(state.productId);
+            if (state.productId) {
+                console.log('→ Loading product:', state.productId);
+                showProductDetail(state.productId);
+            }
             break;
         case 'brand-products':
-            if (state.brandName) showBrandProducts(state.brandName);
+            if (state.brandName) {
+                console.log('→ Loading brand products:', state.brandName);
+                showBrandProducts(state.brandName);
+            }
             break;
         case 'subcategory':
             if (state.subcategoryId) {
+                console.log('→ Loading subcategory:', state.subcategoryId);
                 loadSubcategoryProducts(state.subcategoryId, state.subcategoryName || 'Products');
             }
             break;
         case 'home':
+            console.log('→ Loading home');
             showPage('home', false);
             loadPopularProducts();
             break;
         default:
+            console.log('→ Loading page:', state.page);
             showPage(state.page, false);
     }
 }
@@ -3195,10 +3219,13 @@ window.addEventListener('load', function() {
     // Click handler - DIRECT DOM EVENT
     scrollBtn.onclick = function() {
         console.log('🔝 Scroll button clicked!');
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        
+        // Try multiple methods
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
+        
+        console.log('🔝 Scroll executed');
         return false;
     };
     
