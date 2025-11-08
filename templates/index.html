@@ -3237,40 +3237,29 @@ function updatePageSEO(title, description) {
 // SCROLL TO TOP BUTTON
 // ============================================
 (function() {
-    let scrollBtn;
-    let lastScroll = 0;
-    
     function init() {
-        scrollBtn = document.getElementById('scroll-to-top-btn');
-        
-        if (!scrollBtn) {
-            console.error('❌ Scroll button not found');
-            return;
-        }
-        
-        console.log('✅ Scroll button element:', scrollBtn);
-        
-        // Scroll detection - using inline styles
+        const scrollBtn = document.getElementById('scroll-to-top-btn');
+        if (!scrollBtn) return console.error('❌ Scroll button not found');
+
+        // Scroll detection
         window.addEventListener('scroll', function() {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
             if (scrollTop > 300) {
                 scrollBtn.classList.add('visible');
             } else {
                 scrollBtn.classList.remove('visible');
             }
         }, { passive: true });
-        
+
         // Click handler
         scrollBtn.addEventListener('click', function() {
             console.log('🔝 Scrolling to top (smooth)');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        
         console.log('✅ Scroll button initialized');
     }
-    
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
