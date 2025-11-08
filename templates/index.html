@@ -56,7 +56,7 @@
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    z-index: 999999;
+    z-index: 999999 !important;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
     display: flex;
     align-items: center;
@@ -3243,6 +3243,7 @@ function updatePageSEO(title, description) {
 
         // Scroll detection
         window.addEventListener('scroll', function() {
+            console.log('Scrolling detected');
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             if (scrollTop > 300) {
                 scrollBtn.classList.add('visible');
