@@ -3237,36 +3237,59 @@ function updatePageSEO(title, description) {
 // SCROLL TO TOP BUTTON
 // ============================================
 (function() {
-    function init() {
-        const scrollBtn = document.getElementById('scroll-to-top-btn');
-        if (!scrollBtn) return console.error('❌ Scroll button not found');
-
-        // Scroll detection
-        window.addEventListener('scroll', function() {
-            console.log('Scrolling detected');
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            if (scrollTop > 300) {
-                scrollBtn.classList.add('visible');
-            } else {
-                scrollBtn.classList.remove('visible');
-            }
-        }, { passive: true });
-
-        // Click handler
-        scrollBtn.addEventListener('click', function() {
-            console.log('🔝 Scrolling to top (smooth)');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        console.log('✅ Scroll button initialized');
+  function init() {
+    const scrollBtn = document.getElementById('scroll-to-top-btn');
+    if (!scrollBtn) {
+      console.error('❌ Scroll button not found');
+      return;
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
+    // 🧠 Find whichever element is scrollable (has a scrollbar)
+    const possibleScrollAreas = document.querySelectorAll('body *');
+    let scrollContainer = window; // default fallback
+
+    for (const el of possibleScrollAreas) {
+      if (el.scrollHeight > el.clientHeight && getComputedStyle(el).overflowY !== 'visible') {
+        scrollContainer = el;
+        break;
+      }
     }
+
+    console.log('✅ Scroll button watching:', scrollContainer === window ? 'window' : scrollContainer.className || scrollContainer.id);
+
+    // 🔹 Show / hide button
+    const onScroll = () => {
+      const scrollTop =
+        scrollContainer === window
+          ? window.pageYOffset || document.documentElement.scrollTop
+          : scrollContainer.scrollTop;
+
+      if (scrollTop > 300) {
+        scrollBtn.classList.add('visible');
+      } else {
+        scrollBtn.classList.remove('visible');
+      }
+    };
+
+    scrollContainer.addEventListener('scroll', onScroll, { passive: true });
+
+    // 🔹 Smooth scroll to top
+    scrollBtn.addEventListener('click', function() {
+      if (scrollContainer === window) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
+
 
 // ============================================
 // INITIALIZE ON PAGE LOAD
