@@ -825,7 +825,7 @@ header input {
   </div>
 
   <!-- Scroll to Top Button -->
-  <button id="scroll-to-top-btn" aria-label="Scroll to top">
+  <button id="scroll-to-top-btn" type="button" aria-label="Scroll to top">
     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
       <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
     </svg>
@@ -1448,6 +1448,8 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
         document.getElementById('products-title').textContent = subcategoryName;
         renderProducts(products);
         
+        console.log('✅ Subcategory loaded:', subcategoryName, products.length, 'products');
+
         // Load filters for this subcategory
         await loadSubcategoryFilters(subcategoryId);
         
@@ -1458,7 +1460,7 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
                 subcategoryId: subcategoryId,
                 subcategoryName: subcategoryName,
                 timestamp: Date.now()
-            }, '', `/#subcategory/${subcategoryId}`);
+            }, '', `/#subcategory/${subcategoryId}/${encodeURIComponent(subcategoryName)}`);
         }
         
         previousPage = currentPage;
@@ -1552,6 +1554,8 @@ async function showBrandProducts(brandName) {
             grid.appendChild(createProductCard(product));
         });
         
+        console.log('✅ Brand products loaded:', brandName, products.length, 'products');
+
         // Only add to history if not coming from popstate
         if (!window.isNavigatingHistory) {
             previousPage = currentPage;
@@ -1790,11 +1794,13 @@ async function showProductDetail(productId) {
                     <div class="flex flex-col lg:flex-row items-center lg:items-start gap-4 max-w-[600px]">
                         <!-- Desktop: Thumbnails on left -->
                         ${product.images && product.images.length > 0 ? `
-                            <div class="hidden lg:flex lg:flex-col gap-3">
-                                ${product.images.slice(0, 4).map(img => `
-                                    <div class="flex-shrink-0 aspect-square w-[112px] h-[112px] border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white" style="min-width: 112px; min-height: 112px;">
-                                        onclick="document.querySelector('#main-product-image').src='${img}'">
-                                        <img src="${img}" class="w-full h-full object-contain p-2">
+                            <div class="hidden lg:flex lg:flex-col gap-3" id="desktop-thumbnails">
+                                ${product.images.slice(0, 4).map((img, idx) => `
+                                    <div class="flex-shrink-0 aspect-square w-[112px] h-[112px] border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white" 
+                                         style="min-width: 112px; min-height: 112px;"
+                                         data-image="${img.replace(/"/g, '&quot;')}"
+                                         data-thumb-index="${idx}">
+                                        <img src="${img}" class="w-full h-full object-contain p-2" loading="lazy">
                                     </div>
                                 `).join('')}
                             </div>
@@ -1802,18 +1808,20 @@ async function showProductDetail(productId) {
                         
                         <div class="flex flex-col items-center gap-4 w-full">
                             <!-- Main image -->
-                            <div class="aspect-square w-full max-w-[90vw] lg:w-[484px] lg:h-[484px] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 p-4 relative" style="min-height: 300px;">
-                             <img id="main-product-image" src="${mainImageURL}" alt="${product.name}" class="w-full h-full object-contain ${product.sold_out ? 'grayscale opacity-50' : ''}" style="min-height: 250px;">
+                            <div class="aspect-square w-full max-w-[90vw] lg:w-[484px] lg:h-[484px] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 p-4 relative" style="min-height: 350px;">
+                                <img id="main-product-image" src="${mainImageURL}" alt="${product.name}" class="w-full h-full object-contain ${product.sold_out ? 'grayscale opacity-50' : ''}" style="min-height: 300px;" loading="eager">
                                 ${product.sold_out ? '<div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20"><span class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-lg shadow-lg">SOLD OUT</span></div>' : ''}
                             </div>
                             
                             <!-- Mobile: Thumbnails below -->
                             ${product.images && product.images.length > 0 ? `
-                                <div class="grid grid-cols-4 gap-2 w-full max-w-[90vw] lg:hidden">
-                                    ${product.images.slice(0, 4).map(img => `
+                                <div class="grid grid-cols-4 gap-2 w-full max-w-[90vw] lg:hidden" id="mobile-thumbnails">
+                                    ${product.images.slice(0, 4).map((img, idx) => `
                                         <div class="aspect-square border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white"
-                                            onclick="document.querySelector('#main-product-image').src='${img}'">
-                                            <img src="${img}" class="w-full h-full object-contain p-1">
+                                             style="min-height: 80px;"
+                                             data-image="${img.replace(/"/g, '&quot;')}"
+                                             data-thumb-index="${idx}">
+                                            <img src="${img}" class="w-full h-full object-contain p-1" loading="lazy">
                                         </div>
                                     `).join('')}
                                 </div>
@@ -1928,6 +1936,35 @@ async function showProductDetail(productId) {
         script.type = 'application/ld+json';
         script.text = JSON.stringify(schema);
         document.head.appendChild(script);
+        
+        console.log('✅ Product detail loaded:', product.product_name);
+
+        // Attach thumbnail click handlers
+        setTimeout(() => {
+            const mainImage = document.getElementById('main-product-image');
+            
+            // Desktop thumbnails
+            const desktopThumbs = document.querySelectorAll('#desktop-thumbnails > div[data-image]');
+            desktopThumbs.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    const imgSrc = this.getAttribute('data-image');
+                    if (mainImage && imgSrc) {
+                        mainImage.src = imgSrc;
+                    }
+                });
+            });
+            
+            // Mobile thumbnails
+            const mobileThumbs = document.querySelectorAll('#mobile-thumbnails > div[data-image]');
+            mobileThumbs.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    const imgSrc = this.getAttribute('data-image');
+                    if (mainImage && imgSrc) {
+                        mainImage.src = imgSrc;
+                    }
+                });
+            });
+        }, 100);
         
         // Only add to history if not coming from popstate
         if (!window.isNavigatingHistory) {
@@ -2946,54 +2983,69 @@ function showPage(pageId, addToHistory = true) {
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function(event) {
-    console.log('📍 Popstate event:', event.state);
+    console.log('📍 Popstate triggered:', event.state);
     
-    // Set flag to prevent adding duplicate history entries
+    // Prevent duplicate history entries
     window.isNavigatingHistory = true;
     
-    // Scroll to top IMMEDIATELY
+    // Scroll to top
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     window.scrollTo(0, 0);
     
+    // Handle navigation based on state OR hash
     if (event.state && event.state.page) {
-        console.log('📍 Navigating to:', event.state.page);
-        
-        if (event.state.page === 'product-detail' && event.state.productId) {
-            showProductDetail(event.state.productId);
-        } else if (event.state.page === 'brand-products' && event.state.brandName) {
-            showBrandProducts(event.state.brandName);
-        } else if (event.state.page === 'subcategory' && event.state.subcategoryId) {
-            loadSubcategoryProducts(event.state.subcategoryId, event.state.subcategoryName);
-        } else {
-            showPage(event.state.page, false);
-        }
+        handleNavigation(event.state);
     } else {
-        // If no state, check URL hash
-        const hash = window.location.hash.substring(1);
-        console.log('📍 No state, checking hash:', hash);
-        
-        if (hash.startsWith('product/')) {
-            const productId = hash.split('/')[1];
-            showProductDetail(parseInt(productId));
+        // Fallback to hash
+        const hash = window.location.hash.substring(1) || 'home';
+        if (hash === 'home' || hash === '') {
+            showPage('home', false);
+            loadPopularProducts();
+        } else if (hash.startsWith('product/')) {
+            const productId = parseInt(hash.split('/')[1]);
+            showProductDetail(productId);
         } else if (hash.startsWith('brand/')) {
             const brandName = decodeURIComponent(hash.split('/')[1]);
             showBrandProducts(brandName);
         } else if (hash.startsWith('subcategory/')) {
-            const subcategoryId = parseInt(hash.split('/')[1]);
-            loadSubcategoryProducts(subcategoryId, 'Products');
-        } else if (hash) {
-            showPage(hash, false);
+            const parts = hash.split('/');
+            const subcategoryId = parseInt(parts[1]);
+            const subcategoryName = decodeURIComponent(parts[2] || 'Products');
+            loadSubcategoryProducts(subcategoryId, subcategoryName);
         } else {
-            showPage('home', false);
+            showPage(hash, false);
         }
     }
     
-    // Clear flag after navigation completes
-    setTimeout(function() {
+    // Clear flag
+    setTimeout(() => {
         window.isNavigatingHistory = false;
-    }, 100);
+    }, 200);
 });
+
+// Helper function to handle navigation
+function handleNavigation(state) {
+    switch(state.page) {
+        case 'product-detail':
+            if (state.productId) showProductDetail(state.productId);
+            break;
+        case 'brand-products':
+            if (state.brandName) showBrandProducts(state.brandName);
+            break;
+        case 'subcategory':
+            if (state.subcategoryId) {
+                loadSubcategoryProducts(state.subcategoryId, state.subcategoryName || 'Products');
+            }
+            break;
+        case 'home':
+            showPage('home', false);
+            loadPopularProducts();
+            break;
+        default:
+            showPage(state.page, false);
+    }
+}
 
 function goBack() {
     window.history.back();
@@ -3116,79 +3168,45 @@ function updatePageSEO(title, description) {
 // ============================================
 // SCROLL TO TOP BUTTON
 // ============================================
-(function() {
-    let scrollBtn;
-    let isScrolling = false;
+window.addEventListener('load', function() {
+    const scrollBtn = document.getElementById('scroll-to-top-btn');
     
-    function initScrollButton() {
-        scrollBtn = document.getElementById('scroll-to-top-btn');
+    if (!scrollBtn) {
+        console.error('❌ Scroll button not found');
+        return;
+    }
+    
+    console.log('✅ Scroll button initialized');
+    
+    // Show/hide based on scroll
+    function checkScroll() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         
-        if (!scrollBtn) {
-            console.error('❌ Scroll button not found');
-            return;
+        if (scrollTop > 300) {
+            scrollBtn.classList.add('visible');
+        } else {
+            scrollBtn.classList.remove('visible');
         }
-        
-        console.log('✅ Scroll button initialized');
-        
-        // Make sure button starts hidden
-        scrollBtn.style.display = 'none';
-        scrollBtn.style.opacity = '0';
-        
-        // Check scroll position
-        function handleScroll() {
-            if (isScrolling) return;
-            
-            isScrolling = true;
-            requestAnimationFrame(function() {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-                
-                if (scrollTop > 300) {
-                    scrollBtn.style.display = 'flex';
-                    // Small delay to trigger CSS transition
-                    setTimeout(function() {
-                        scrollBtn.style.opacity = '1';
-                        scrollBtn.style.transform = 'scale(1)';
-                    }, 10);
-                } else {
-                    scrollBtn.style.opacity = '0';
-                    scrollBtn.style.transform = 'scale(0.8)';
-                    // Hide after transition
-                    setTimeout(function() {
-                        if (scrollBtn.style.opacity === '0') {
-                            scrollBtn.style.display = 'none';
-                        }
-                    }, 300);
-                }
-                
-                isScrolling = false;
-            });
-        }
-        
-        // Attach scroll listener
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        
-        // Click handler
-        scrollBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+    }
+    
+    // Attach scroll listener
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    
+    // Click handler - DIRECT DOM EVENT
+    scrollBtn.onclick = function() {
+        console.log('🔝 Scroll button clicked!');
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
         });
-        
-        // Check initial position
-        handleScroll();
-    }
+        return false;
+    };
     
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initScrollButton);
-    } else {
-        initScrollButton();
-    }
-})();
+    // Initial check
+    checkScroll();
+    
+    console.log('✅ Scroll button click handler attached');
+});
 
 // ============================================
 // INITIALIZE ON PAGE LOAD
