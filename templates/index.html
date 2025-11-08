@@ -56,14 +56,20 @@
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    z-index: 999999 !important;
+    z-index: 999999;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-    display: flex !important;
+    display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 1 !important;
-    transform: scale(1) !important;
+    opacity: 0;
+    transform: scale(0.8);
     transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+#scroll-to-top-btn.visible {
+    opacity: 1;
+    transform: scale(1);
     pointer-events: auto;
 }
 
@@ -1973,21 +1979,26 @@ async function showProductDetail(productId) {
             });
         }, 100);
         
-        // Only add to history if not coming from popstate
+        // Handle history
         if (!window.isNavigatingHistory) {
+            // Save the current page state before navigating
+            const previousState = window.history.state;
+            console.log('💾 Previous state before product:', previousState);
+            
             previousPage = currentPage;
             currentPage = 'product-detail';
             
-            // Push new history entry
+            // Push product to history
             window.history.pushState({ 
                 page: 'product-detail', 
                 productId: productId,
                 from: previousPage,
+                previousState: previousState, // Save previous state for reference
                 timestamp: Date.now()
             }, '', `/#product/${productId}`);
             console.log('➕ Added to history: product', productId, 'from', previousPage);
         } else {
-            console.log('⏭️ Skipped history add (navigating via popstate)');
+            console.log('⏭️ Skipped history update (navigating via popstate)');
             currentPage = 'product-detail';
         }
         
