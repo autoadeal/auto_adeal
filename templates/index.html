@@ -3239,48 +3239,29 @@ function updatePageSEO(title, description) {
 (function() {
   function init() {
     const scrollBtn = document.getElementById('scroll-to-top-btn');
+    const scrollContainer = document.body;
+
     if (!scrollBtn) {
       console.error('❌ Scroll button not found');
       return;
     }
 
-    // 🧠 Find whichever element is scrollable (has a scrollbar)
-    const possibleScrollAreas = document.querySelectorAll('body *');
-    let scrollContainer = window; // default fallback
-
-    for (const el of possibleScrollAreas) {
-      if (el.scrollHeight > el.clientHeight && getComputedStyle(el).overflowY !== 'visible') {
-        scrollContainer = el;
-        break;
-      }
-    }
-
-    console.log('✅ Scroll button watching:', scrollContainer === window ? 'window' : scrollContainer.className || scrollContainer.id);
-
-    // 🔹 Show / hide button
-    const onScroll = () => {
-      const scrollTop =
-        scrollContainer === window
-          ? window.pageYOffset || document.documentElement.scrollTop
-          : scrollContainer.scrollTop;
-
+    // Show/hide button when scrolling
+    scrollContainer.addEventListener('scroll', () => {
+      const scrollTop = scrollContainer.scrollTop;
       if (scrollTop > 300) {
         scrollBtn.classList.add('visible');
       } else {
         scrollBtn.classList.remove('visible');
       }
-    };
+    }, { passive: true });
 
-    scrollContainer.addEventListener('scroll', onScroll, { passive: true });
-
-    // 🔹 Smooth scroll to top
-    scrollBtn.addEventListener('click', function() {
-      if (scrollContainer === window) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+    // Scroll smoothly to top when button clicked
+    scrollBtn.addEventListener('click', () => {
+      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    console.log('✅ Scroll button initialized and listening on <body>');
   }
 
   if (document.readyState === 'loading') {
