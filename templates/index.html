@@ -841,6 +841,7 @@ let previousPage = 'home';
 let cartItems = [];
 let wishlistItems = [];
 let categoriesData = [];
+window.isNavigatingHistory = false;
 
 const EUR_TO_ALL = 94.34; // Keep this
 
@@ -1450,13 +1451,15 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
         // Load filters for this subcategory
         await loadSubcategoryFilters(subcategoryId);
         
-        // Add to history AFTER loading
-        window.history.pushState({
-            page: 'subcategory',
-            subcategoryId: subcategoryId,
-            subcategoryName: subcategoryName,
-            timestamp: Date.now()
-        }, '', `/#subcategory/${subcategoryId}`);
+        // Only add to history if not coming from popstate
+        if (!window.isNavigatingHistory) {
+            window.history.pushState({
+                page: 'subcategory',
+                subcategoryId: subcategoryId,
+                subcategoryName: subcategoryName,
+                timestamp: Date.now()
+            }, '', `/#subcategory/${subcategoryId}`);
+        }
         
         previousPage = currentPage;
         currentPage = 'subcategory';
@@ -1549,13 +1552,16 @@ async function showBrandProducts(brandName) {
             grid.appendChild(createProductCard(product));
         });
         
-        previousPage = currentPage;
-        currentPage = 'brand-products';
-        window.history.pushState({ 
-            page: 'brand-products', 
-            brandName: brandName,
-            timestamp: Date.now()
-        }, '', `/#brand/${encodeURIComponent(brandName)}`);
+        // Only add to history if not coming from popstate
+        if (!window.isNavigatingHistory) {
+            previousPage = currentPage;
+            currentPage = 'brand-products';
+            window.history.pushState({ 
+                page: 'brand-products', 
+                brandName: brandName,
+                timestamp: Date.now()
+            }, '', `/#brand/${encodeURIComponent(brandName)}`);
+        }
         
         // Force scroll again
         setTimeout(() => {
@@ -1786,7 +1792,7 @@ async function showProductDetail(productId) {
                         ${product.images && product.images.length > 0 ? `
                             <div class="hidden lg:flex lg:flex-col gap-3">
                                 ${product.images.slice(0, 4).map(img => `
-                                    <div class="flex-shrink-0 aspect-square w-[112px] h-[112px] border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white"
+                                    <div class="flex-shrink-0 aspect-square w-[112px] h-[112px] border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white" style="min-width: 112px; min-height: 112px;">
                                         onclick="document.querySelector('#main-product-image').src='${img}'">
                                         <img src="${img}" class="w-full h-full object-contain p-2">
                                     </div>
@@ -1796,8 +1802,8 @@ async function showProductDetail(productId) {
                         
                         <div class="flex flex-col items-center gap-4 w-full">
                             <!-- Main image -->
-                            <div class="aspect-square w-full max-w-[90vw] lg:w-[484px] lg:h-[484px] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 p-4 relative">
-                                <img id="main-product-image" src="${mainImageURL}" alt="${product.name}" class="w-full h-full object-contain ${product.sold_out ? 'grayscale opacity-50' : ''}">
+                            <div class="aspect-square w-full max-w-[90vw] lg:w-[484px] lg:h-[484px] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 p-4 relative" style="min-height: 300px;">
+                             <img id="main-product-image" src="${mainImageURL}" alt="${product.name}" class="w-full h-full object-contain ${product.sold_out ? 'grayscale opacity-50' : ''}" style="min-height: 250px;">
                                 ${product.sold_out ? '<div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20"><span class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-lg shadow-lg">SOLD OUT</span></div>' : ''}
                             </div>
                             
@@ -1923,13 +1929,16 @@ async function showProductDetail(productId) {
         script.text = JSON.stringify(schema);
         document.head.appendChild(script);
         
-        previousPage = currentPage;
-        currentPage = 'product-detail';
-        window.history.pushState({ 
-            page: 'product-detail', 
-            productId: productId,
-            timestamp: Date.now()
-        }, '', `/#product/${productId}`);
+        // Only add to history if not coming from popstate
+        if (!window.isNavigatingHistory) {
+            previousPage = currentPage;
+            currentPage = 'product-detail';
+            window.history.pushState({ 
+                page: 'product-detail', 
+                productId: productId,
+                timestamp: Date.now()
+            }, '', `/#product/${productId}`);
+        }
         
         // Force scroll to top again
         setTimeout(() => {
@@ -2937,12 +2946,19 @@ function showPage(pageId, addToHistory = true) {
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function(event) {
+    console.log('📍 Popstate event:', event.state);
+    
+    // Set flag to prevent adding duplicate history entries
+    window.isNavigatingHistory = true;
+    
     // Scroll to top IMMEDIATELY
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     window.scrollTo(0, 0);
     
     if (event.state && event.state.page) {
+        console.log('📍 Navigating to:', event.state.page);
+        
         if (event.state.page === 'product-detail' && event.state.productId) {
             showProductDetail(event.state.productId);
         } else if (event.state.page === 'brand-products' && event.state.brandName) {
@@ -2955,6 +2971,8 @@ window.addEventListener('popstate', function(event) {
     } else {
         // If no state, check URL hash
         const hash = window.location.hash.substring(1);
+        console.log('📍 No state, checking hash:', hash);
+        
         if (hash.startsWith('product/')) {
             const productId = hash.split('/')[1];
             showProductDetail(parseInt(productId));
@@ -2963,7 +2981,6 @@ window.addEventListener('popstate', function(event) {
             showBrandProducts(brandName);
         } else if (hash.startsWith('subcategory/')) {
             const subcategoryId = parseInt(hash.split('/')[1]);
-            // We need to get the subcategory name - for now just use ID
             loadSubcategoryProducts(subcategoryId, 'Products');
         } else if (hash) {
             showPage(hash, false);
@@ -2971,6 +2988,11 @@ window.addEventListener('popstate', function(event) {
             showPage('home', false);
         }
     }
+    
+    // Clear flag after navigation completes
+    setTimeout(function() {
+        window.isNavigatingHistory = false;
+    }, 100);
 });
 
 function goBack() {
