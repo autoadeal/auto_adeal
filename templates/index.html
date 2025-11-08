@@ -1978,12 +1978,15 @@ async function showProductDetail(productId) {
         if (!window.isNavigatingHistory) {
             previousPage = currentPage;
             currentPage = 'product-detail';
+            
+            // Push new history entry
             window.history.pushState({ 
                 page: 'product-detail', 
                 productId: productId,
+                from: previousPage,
                 timestamp: Date.now()
             }, '', `/#product/${productId}`);
-            console.log('➕ Added to history: product', productId);
+            console.log('➕ Added to history: product', productId, 'from', previousPage);
         } else {
             console.log('⏭️ Skipped history add (navigating via popstate)');
             currentPage = 'product-detail';
@@ -2995,7 +2998,11 @@ function showPage(pageId, addToHistory = true) {
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function(event) {
-    console.log('📍 Popstate triggered:', event.state);
+    console.log('📍 Popstate triggered');
+    console.log('   Current state:', event.state);
+    console.log('   Current URL:', window.location.href);
+    console.log('   Current hash:', window.location.hash);
+    console.log('   History length:', window.history.length);
     
     // Prevent duplicate history entries
     window.isNavigatingHistory = true;
@@ -3011,6 +3018,8 @@ window.addEventListener('popstate', function(event) {
     } else {
         // Fallback to hash
         const hash = window.location.hash.substring(1) || 'home';
+        console.log('   No state, using hash:', hash);
+        
         if (hash === 'home' || hash === '') {
             showPage('home', false);
             loadPopularProducts();
@@ -3220,10 +3229,20 @@ window.addEventListener('load', function() {
     scrollBtn.onclick = function() {
         console.log('🔝 Scroll button clicked!');
         
-        // Try multiple methods
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        window.scrollTo(0, 0);
+        // Smooth scroll with fallback
+        if ('scrollBehavior' in document.documentElement.style) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            // Fallback for browsers that don't support smooth scroll
+            const scrollStep = -window.scrollY / 15;
+            const scrollInterval = setInterval(function() {
+                if (window.scrollY !== 0) {
+                    window.scrollBy(0, scrollStep);
+                } else {
+                    clearInterval(scrollInterval);
+                }
+            }, 15);
+        }
         
         console.log('🔝 Scroll executed');
         return false;
