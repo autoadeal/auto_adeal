@@ -45,7 +45,6 @@
   
   <style>
 
-/* Scroll to Top Button */
 #scroll-to-top-btn {
     position: fixed;
     bottom: 20px;
@@ -57,13 +56,13 @@
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    z-index: 999999 !important;
+    z-index: 99999;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-    display: flex !important;
+    display: none;
     align-items: center;
     justify-content: center;
-    opacity: 1 !important;
-    transform: scale(1) !important;
+    opacity: 0;
+    transform: scale(0.8);
     transition: opacity 0.3s ease, transform 0.3s ease;
     pointer-events: auto;
 }
@@ -3229,20 +3228,10 @@ window.addEventListener('load', function() {
     scrollBtn.onclick = function() {
         console.log('🔝 Scroll button clicked!');
         
-        // Smooth scroll with fallback
-        if ('scrollBehavior' in document.documentElement.style) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-            // Fallback for browsers that don't support smooth scroll
-            const scrollStep = -window.scrollY / 15;
-            const scrollInterval = setInterval(function() {
-                if (window.scrollY !== 0) {
-                    window.scrollBy(0, scrollStep);
-                } else {
-                    clearInterval(scrollInterval);
-                }
-            }, 15);
-        }
+        // Try multiple methods
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
         
         console.log('🔝 Scroll executed');
         return false;
