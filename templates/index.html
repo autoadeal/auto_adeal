@@ -1921,10 +1921,6 @@ async function showProductDetail(productId) {
                 </div>
             ` : ''}
         `;
-        
-        previousPage = currentPage;
-        currentPage = 'product-detail';
-        window.history.pushState({ page: 'product-detail', productId: productId }, '', `/#product/${productId}`);
 
         // ADD PRODUCT SCHEMA FOR GOOGLE
         const schema = {
