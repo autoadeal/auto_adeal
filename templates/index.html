@@ -20,7 +20,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon/favicon-512.png">
 
   <meta name="description" content="Blej pjese dhe aksesore per makina online ne Shqiperi dhe Kosove. Cilesi e larte, Cmime te uleta, dergese e shpejte. Produkte per te gjitha markat: VW, BMW, Audi, Mercedes, Toyota dhe me shume.">
-  <meta name="keywords" content="pjese, makine, makinash, aksesore, auto, parts, shqiperi, pjese, kembimi, online, butona, sinjale, doreza, leva, leve, marshi, pastrim, detajim, coolant, rezervuar, depozite">
+  <meta name="keywords" content="auto adeal, pjese, makine, makinash, aksesore, auto, parts, shqiperi, pjese, kembimi, online, butona, sinjale, doreza, leva, leve, marshi, pastrim, detajim, coolant, rezervuar, depozite">
   <meta name="author" content="Auto Adeal">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://autoadeal.com">
@@ -399,6 +399,35 @@ header input {
   }
   </script>
   
+  <!-- WebSite Schema for Search Box -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Auto Adeal",
+    "url": "https://autoadeal.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://autoadeal.com/#search/{search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- Breadcrumb Schema (will be updated dynamically) -->
+  <script type="application/ld+json" id="breadcrumb-schema">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://autoadeal.com"
+    }]
+  }
+  </script>
+
   <style>@view-transition { navigation: auto; }</style>
     
  </head>
@@ -1463,6 +1492,11 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
         updateMetaTag('og:title', `${subcategoryName} - Auto Adeal`);
         updateMetaTag('og:url', `https://autoadeal.com/#subcategory/${subcategoryId}`);
         
+        updateBreadcrumbs([
+            { name: 'Home', url: 'https://autoadeal.com' },
+            { name: subcategoryName, url: `https://autoadeal.com/#subcategory/${subcategoryId}` }
+        ]);
+
         // Load filters for this subcategory
         await loadSubcategoryFilters(subcategoryId);
         
@@ -1728,7 +1762,7 @@ function createProductCard(product, hideActions = false) {
     card.innerHTML = `
         <div onclick="showProductDetail(${productId})" class="cursor-pointer flex-1 flex flex-col ${isSoldOut ? 'opacity-85' : ''}">
             <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden relative">
-                <img src="${imageURL}" alt="${productName}" class="w-full h-full object-contain p-2 ${isSoldOut ? 'grayscale opacity-60' : ''}">
+                <img src="${imageURL}" alt="${productName} - Pjese Makine Auto Adeal" class="w-full h-full object-contain p-2 ${isSoldOut ? 'grayscale opacity-60' : ''}" loading="lazy">
                 ${isSoldOut ? '<div class="absolute inset-0 flex items-center justify-center bg-grey bg-opacity-20"><span class="bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-xs md:text-sm shadow-lg">SOLD OUT</span></div>' : ''}
             </div>
             <h4 class="font-semibold text-black mb-2 text-center text-sm md:text-base min-h-[40px] md:min-h-[24px] line-clamp-2 md:line-clamp-1">${productName}</h4>
@@ -1783,6 +1817,12 @@ async function showProductDetail(productId) {
         updateMetaTag('og:description', product.description || `Blej ${product.name} me cmim te mire`);
         updateMetaTag('og:image', product.main_image || '/static/logo.png');
         updateMetaTag('og:url', `https://autoadeal.com/#product/${productId}`);
+
+        updateBreadcrumbs([
+            { name: 'Home', url: 'https://autoadeal.com' },
+            { name: 'Produkte', url: 'https://autoadeal.com' },
+            { name: product.name, url: `https://autoadeal.com/#product/${productId}` }
+        ]);
         
         const mainImageURL = product.main_image || '/static/uploads/default.png';
         const priceDisplay = product.discount_price && product.discount_price < product.price
@@ -1837,7 +1877,7 @@ async function showProductDetail(productId) {
                                          style="min-width: 112px; min-height: 112px;"
                                          data-image="${img.replace(/"/g, '&quot;')}"
                                          data-thumb-index="${idx}">
-                                        <img src="${img}" class="w-full h-full object-contain p-2" loading="lazy">
+                                        <img src="${img}" alt="${product.name} - Foto ${idx + 1}" class="w-full h-full object-contain p-2" loading="lazy">
                                     </div>
                                 `).join('')}
                             </div>
@@ -1846,7 +1886,7 @@ async function showProductDetail(productId) {
                         <div class="flex flex-col items-center gap-4 w-full">
                             <!-- Main image -->
                             <div class="aspect-square w-full max-w-[90vw] lg:w-[484px] lg:h-[484px] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 p-4 relative" style="min-height: 350px;">
-                                <img id="main-product-image" src="${mainImageURL}" alt="${product.name}" class="w-full h-full object-contain ${product.sold_out ? 'grayscale opacity-50' : ''}" style="min-height: 300px;" loading="eager">
+                                <img id="main-product-image" src="${mainImageURL}" alt="${product.name} - Blerje Online Auto Adeal Shqiperi" class="w-full h-full object-contain ${product.sold_out ? 'grayscale opacity-50' : ''}" style="min-height: 300px;" loading="eager">
                                 ${product.sold_out ? '<div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20"><span class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-lg shadow-lg">SOLD OUT</span></div>' : ''}
                             </div>
                             
@@ -2931,6 +2971,25 @@ async function applyFilters() {
     showNotification(`${products.length} produkte u gjeten`, 'success');
 }
 
+// Update breadcrumb schema for SEO
+function updateBreadcrumbs(items) {
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": items.map((item, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": item.name,
+            "item": item.url
+        }))
+    };
+    
+    const schemaElement = document.getElementById('breadcrumb-schema');
+    if (schemaElement) {
+        schemaElement.textContent = JSON.stringify(breadcrumbSchema);
+    }
+}
+
 // ============================================
 // PAGE NAVIGATION
 // ============================================
@@ -2983,7 +3042,9 @@ function showPage(pageId, addToHistory = true) {
             updateMetaTag('description', 'Blej pjese dhe aksesore per makina online ne Shqiperi dhe Kosove. Cilesi e larte, Cmime te uleta, dergese e shpejte.');
             updateMetaTag('og:title', 'Auto Adeal - Pjese per Makina Shqiperi');
             updateMetaTag('og:url', 'https://autoadeal.com');
-            
+            updateBreadcrumbs([
+                { name: 'Home', url: 'https://autoadeal.com' }
+            ]);
             // Show banner on home if it has an image
             const banner = document.getElementById('home-banner');
             const bannerImg = document.getElementById('banner-image');
@@ -3002,6 +3063,10 @@ function showPage(pageId, addToHistory = true) {
             updateMetaTag('description', 'Eksploro oferta speciale per pjese dhe aksesore makine. Gjej cilesine me cmim te arsyeshem.');
             updateMetaTag('og:title', 'Oferta Speciale - Auto Adeal');
             updateMetaTag('og:url', 'https://autoadeal.com/#special-offers');
+            updateBreadcrumbs([
+                { name: 'Home', url: 'https://autoadeal.com' },
+                { name: 'Oferta Speciale', url: 'https://autoadeal.com/#special-offers' }
+            ]);
             loadSpecialOffers();
             break;
             
