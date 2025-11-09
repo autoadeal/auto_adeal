@@ -1456,6 +1456,12 @@ async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
         renderProducts(products);
         
         console.log('✅ Subcategory loaded:', subcategoryName, products.length, 'products');
+
+        // Update page title for SEO
+        document.title = `${subcategoryName} - Auto Adeal | ${products.length} Produkte`;
+        updateMetaTag('description', `Shiko ${products.length} produkte ne kategorine ${subcategoryName}. Cilesi e larte, cmime te arsyeshme, dergese e shpejte.`);
+        updateMetaTag('og:title', `${subcategoryName} - Auto Adeal`);
+        updateMetaTag('og:url', `https://autoadeal.com/#subcategory/${subcategoryId}`);
         
         // Load filters for this subcategory
         await loadSubcategoryFilters(subcategoryId);
@@ -1566,6 +1572,12 @@ async function showBrandProducts(brandName) {
             return;
         }
         
+        // Update page title for SEO
+        document.title = `Pjese per ${brandName} - Auto Adeal | ${products.length} Produkte`;
+        updateMetaTag('description', `Gjej ${products.length} pjese dhe aksesore per makina ${brandName}. Cilesi e larte, cmime te arsyeshme, dergese e shpejte.`);
+        updateMetaTag('og:title', `Pjese per ${brandName} - Auto Adeal`);
+        updateMetaTag('og:url', `https://autoadeal.com/#brand/${encodeURIComponent(brandName)}`);
+
         products.forEach(product => {
             grid.appendChild(createProductCard(product));
         });
@@ -2983,6 +2995,11 @@ function showPage(pageId, addToHistory = true) {
     switch(pageId) {
         case 'home':
             document.getElementById('home-page').style.display = 'block';
+            document.title = 'Auto Adeal - Aksesore dhe Pjese per Makina ne Shqiperi | Cilesi e larte dhe Cmime te uleta';
+            updateMetaTag('description', 'Blej pjese dhe aksesore per makina online ne Shqiperi dhe Kosove. Cilesi e larte, Cmime te uleta, dergese e shpejte.');
+            updateMetaTag('og:title', 'Auto Adeal - Pjese per Makina Shqiperi');
+            updateMetaTag('og:url', 'https://autoadeal.com');
+            
             // Show banner on home if it has an image
             const banner = document.getElementById('home-banner');
             const bannerImg = document.getElementById('banner-image');
@@ -2994,17 +3011,33 @@ function showPage(pageId, addToHistory = true) {
                 showCategories();
             }
             break;
+            
         case 'special-offers':
             document.getElementById('special-offers-page').style.display = 'block';
+            document.title = 'Oferta Speciale - Auto Adeal | Produkte ne Zbritje';
+            updateMetaTag('description', 'Eksploro oferta speciale per pjese dhe aksesore makine. Gjej cilesine me cmim te arsyeshem.');
+            updateMetaTag('og:title', 'Oferta Speciale - Auto Adeal');
+            updateMetaTag('og:url', 'https://autoadeal.com/#special-offers');
             loadSpecialOffers();
             break;
+            
         case 'brands':
             document.getElementById('brands-page').style.display = 'block';
+            document.title = 'Markat e Makinave - Auto Adeal | VW, BMW, Audi, Mercedes, Toyota dhe me shume';
+            updateMetaTag('description', 'Gjej pjese dhe aksesore per marken e makines tende: Volkswagen, BMW, Audi, Mercedes-Benz, Toyota, Ford dhe shume te tjera.');
+            updateMetaTag('og:title', 'Markat e Makinave - Auto Adeal');
+            updateMetaTag('og:url', 'https://autoadeal.com/#brands');
             loadBrandsPage();
             break;
+            
         case 'contact':
             document.getElementById('contact-page').style.display = 'block';
+            document.title = 'Na Kontaktoni - Auto Adeal';
+            updateMetaTag('description', 'Na kontaktoni per pyetje, porosi ose ndihme. Te disponueshem ne Whatsapp, Email dhe Instagram. Sherbim klienti i shpejte dhe profesional.');
+            updateMetaTag('og:title', 'Na Kontaktoni - Auto Adeal');
+            updateMetaTag('og:url', 'https://autoadeal.com/#contact');
             break;
+            
         case 'checkout':
             if (cartItems.length === 0) {
                 showNotification('Shporta eshte bosh', 'error');
@@ -3012,17 +3045,34 @@ function showPage(pageId, addToHistory = true) {
                 return;
             }
             document.getElementById('checkout-page').style.display = 'block';
+            document.title = 'Pagesa - Auto Adeal | Perfundo Blerjen';
+            updateMetaTag('description', 'Perfundo blerjen tende. Pagese ne dorezim, dergese ne te gjithe Shqiperine dhe Kosoven.');
+            updateMetaTag('og:title', 'Pagesa - Auto Adeal');
+            updateMetaTag('og:url', 'https://autoadeal.com/#checkout');
             loadCheckoutSummary();
             break;
+            
         case 'cart':
             document.getElementById('cart-page').style.display = 'block';
+            const itemCount = cartItems.length;
+            document.title = `Shporta (${itemCount}) - Auto Adeal`;
+            updateMetaTag('description', `Ke ${itemCount} produkte ne shporte. Shiko produktet ne shporte dhe perfundo blerjen tende.`);
+            updateMetaTag('og:title', `Shporta - Auto Adeal`);
+            updateMetaTag('og:url', 'https://autoadeal.com/#cart');
             loadCartPage();
             break;
+            
         case 'wishlist':
             document.getElementById('wishlist-page').style.display = 'block';
+            const wishCount = wishlistItems.length;
+            document.title = `Lista e Deshirave (${wishCount}) - Auto Adeal`;
+            updateMetaTag('description', `Ke ${wishCount} produkte ne listen e deshirave. Ruaj produktet e tua te preferuara.`);
+            updateMetaTag('og:title', `Lista e Deshirave - Auto Adeal`);
+            updateMetaTag('og:url', 'https://autoadeal.com/#wishlist');
             loadWishlistPage();
             break;
     }
+
     // Force scroll to top again after a tick
     setTimeout(() => {
         document.documentElement.scrollTop = 0;
@@ -3141,6 +3191,12 @@ async function performSearch() {
         document.getElementById('products-title').textContent = `Search results for "${query}"`;
         renderProducts(products);
         
+        // Update page title for SEO
+        document.title = `Kerkim: ${query} - Auto Adeal | ${products.length} Rezultate`;
+        updateMetaTag('description', `Rezultate kerkimi per "${query}". U gjeten ${products.length} produkte.`);
+        updateMetaTag('og:title', `Kerkim: ${query} - Auto Adeal`);
+        updateMetaTag('og:url', `https://autoadeal.com/#search/${encodeURIComponent(query)}`);
+
         showPage('home');
         
         if (products.length === 0) {
