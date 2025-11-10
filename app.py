@@ -1329,15 +1329,18 @@ def create_order():
         
         # Send email notification
         try:
+            print("📧 Attempting to send emails...")
             send_order_notification_email(order, cart_items)
-            
+            print("✅ Admin email sent")
             # Send confirmation to customer if email provided
             customer_email = data.get('customer_email')
             if customer_email:
+                print(f"📧 Sending customer email to {customer_email}")
                 send_customer_confirmation_email(order, cart_items, customer_email)
+                print("✅ Customer email sent")
         except Exception as e:
             print(f"⚠️ Email notification failed: {e}")
-        
+
         return jsonify({
             'success': True,
             'order_id': order.order_id,
