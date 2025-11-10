@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, date
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from flask_mail import Mail, Message
 import secrets
 import random
 import os
@@ -43,6 +44,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL or 'mysql+pymysql://root:@l
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Email configuration for Gmail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'autoadeal@gmail.com'
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD', '')  # Set this in Railway
+app.config['MAIL_DEFAULT_SENDER'] = 'autoadeal@gmail.com'
+mail = Mail(app)
 
 db = SQLAlchemy(app)
 
@@ -161,6 +171,7 @@ class Order(db.Model):
     order_id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
+    customer_address = db.Column(db.String(255), nullable=False)
     customer_country = db.Column(db.String(50), nullable=False)
     customer_city = db.Column(db.String(100), nullable=False)
     total_amount = db.Column(db.Float, nullable=False)
@@ -1024,6 +1035,109 @@ def api_admin_subcategory_specs(subcategory_id):
         })
     return jsonify(specs)
 
+def send_order_notification_email(order, cart_items):
+    """Send email notification when new order is placed"""
+    try:
+        # Build order items HTML
+        items_html = ""
+        for item in cart_items:
+            items_html += f"""
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{item['name']}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">{item['quantity']}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">{int(item['price'])} ALL</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">{int(item['price'] * item['quantity'])} ALL</td>
+            </tr>
+            """
+        
+        # Create email
+        msg = Message(
+            subject=f'🔔 New Order #{order.order_id} - Auto Adeal',
+            recipients=['autoadeal@gmail.com'],
+            html=f"""
+            <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+                        <div style="background-color: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+                            <h1 style="margin: 0;">New Order Received!</h1>
+                            <p style="margin: 10px 0 0 0; font-size: 18px;">Order #{order.order_id}</p>
+                        </div>
+                        
+                        <div style="background-color: white; padding: 20px; border-radius: 0 0 10px 10px;">
+                            <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px;">Customer Information</h2>
+                            <table style="width: 100%; margin-bottom: 20px;">
+                                <tr>
+                                    <td style="padding: 8px 0;"><strong>Name:</strong></td>
+                                    <td style="padding: 8px 0;">{order.customer_name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0;"><strong>Phone:</strong></td>
+                                    <td style="padding: 8px 0;">{order.customer_phone}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0;"><strong>Address:</strong></td>
+                                    <td style="padding: 8px 0;">{order.customer_address if hasattr(order, 'customer_address') else ''}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0;"><strong>City:</strong></td>
+                                    <td style="padding: 8px 0;">{order.customer_city}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0;"><strong>Country:</strong></td>
+                                    <td style="padding: 8px 0;">{order.customer_country}</td>
+                                </tr>
+                            </table>
+                            
+                            <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px;">Order Details</h2>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                <thead>
+                                    <tr style="background-color: #f3f4f6;">
+                                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Product</th>
+                                        <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Qty</th>
+                                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Price</th>
+                                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items_html}
+                                </tbody>
+                            </table>
+                            
+                            <div style="text-align: right; font-size: 16px;">
+                                <p style="margin: 10px 0;"><strong>Shipping:</strong> {int(order.shipping_cost)} ALL</p>
+                                <p style="margin: 10px 0; font-size: 20px; color: #dc2626;"><strong>TOTAL:</strong> {int(order.total_amount)} ALL</p>
+                            </div>
+                            
+                            <div style="margin-top: 30px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+                                <p style="margin: 0; font-size: 14px;">
+                                    <strong>⚡ Action Required:</strong> Contact the customer to confirm the order and arrange delivery.
+                                </p>
+                            </div>
+                            
+                            <div style="margin-top: 20px; text-align: center;">
+                                <a href="https://autoadeal.com/admin/orders" style="display: inline-block; background-color: #dc2626; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                    View in Admin Panel
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 12px;">
+                            <p>Auto Adeal - Aksesore dhe Pjese per Makina</p>
+                            <p>Order placed on {order.created_at.strftime('%d/%m/%Y at %H:%M')}</p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """
+        )
+        
+        mail.send(msg)
+        print(f"✅ Order notification email sent for order #{order.order_id}")
+        
+    except Exception as e:
+        print(f"❌ Failed to send email: {e}")
+        raise
+
 @app.route('/api/order', methods=['POST'])
 def create_order():
     """Save customer order"""
@@ -1043,16 +1157,24 @@ def create_order():
         order = Order(
             customer_name=data['customer_name'],
             customer_phone=data['customer_phone'],
-            customer_country=data.get('customer_country', ''),
+            customer_address=data.get('customer_address', ''),  # NEW
             customer_city=data.get('customer_city', ''),
+            customer_country=data.get('customer_country', ''),
             total_amount=total,
             shipping_cost=shipping_cost,
-            order_items=json.dumps(cart_items),  # Store as JSON string
+            order_items=json.dumps(cart_items),
             status='pending'
         )
         
         db.session.add(order)
         db.session.commit()
+        
+        # Send email notification
+        try:
+            send_order_notification_email(order, cart_items)
+        except Exception as e:
+            print(f"⚠️ Email notification failed: {e}")
+            # Don't fail the order if email fails
         
         return jsonify({
             'success': True,
@@ -1083,8 +1205,9 @@ def get_orders():
                 'order_id': order.order_id,
                 'customer_name': order.customer_name,
                 'customer_phone': order.customer_phone,
-                'customer_country': order.customer_country,
+                'customer_address': order.customer_address,
                 'customer_city': order.customer_city,
+                'customer_country': order.customer_country,
                 'total_amount': order.total_amount,
                 'shipping_cost': order.shipping_cost,
                 'status': order.status,

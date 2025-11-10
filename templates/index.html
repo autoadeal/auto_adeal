@@ -799,7 +799,17 @@ header input {
      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div>
        <h3 class="font-bold text-lg text-black mb-4">Informacioni i Dërgesës</h3>
-       <form id="checkout-form" onsubmit="processOrder(event)" class="space-y-4"><input type="text" id="checkout-name" placeholder="Emri i Plote" required class="w-full px-4 py-2 border border-gray-300 rounded text-black"> <input type="tel" id="checkout-phone" placeholder="Numri i telefonit" required class="w-full px-4 py-2 border border-gray-300 rounded text-black"> <select id="checkout-country" onchange="updateShipping()" required class="w-full px-4 py-2 border border-gray-300 rounded text-black"> <option value="">Zgjidh Shtetin</option> <option value="Albania">Shqiperi</option> <option value="Kosovo">Kosovë</option> </select> <input type="text" id="checkout-city" placeholder="Qyteti" required class="w-full px-4 py-2 border border-gray-300 rounded text-black"> <button type="submit" class="w-full bg-red-600 text-white py-3 rounded hover:bg-red-700 transition-colors">Bëj porosinë (Pagesa në dorëzim)</button>
+       <form id="checkout-form" onsubmit="processOrder(event)" class="space-y-4">
+           <input type="text" id="checkout-name" placeholder="Emri i Plote" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+           <input type="tel" id="checkout-phone" placeholder="Numri i telefonit" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+           <select id="checkout-country" onchange="updateShipping()" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+               <option value="">Zgjidh Shtetin</option>
+               <option value="Albania">Shqiperi</option>
+               <option value="Kosovo">Kosove</option>
+           </select>
+           <input type="text" id="checkout-address" placeholder="Adresa (Rruga, Numri)" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+           <input type="text" id="checkout-city" placeholder="Qyteti" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+           <button type="submit" class="w-full bg-red-600 text-white py-3 rounded hover:bg-red-700 transition-colors">Bëj porosinë (Pagesa në dorëzim)</button>
        </form>
       </div>
       <div>
@@ -2462,9 +2472,10 @@ async function processOrder(event) {
     const name = document.getElementById('checkout-name').value;
     const phone = document.getElementById('checkout-phone').value;
     const country = document.getElementById('checkout-country').value;
+    const address = document.getElementById('checkout-address').value;
     const city = document.getElementById('checkout-city').value;
     
-    if (!name || !phone || !country || !city) {
+    if (!name || !phone || !country || !address || !city) {
         showNotification('Ju lutem plotësoni të gjitha fushat', 'error');
         return;
     }
@@ -2484,6 +2495,7 @@ async function processOrder(event) {
     const orderData = {
         customer_name: name,
         customer_phone: phone,
+        customer_address: address,
         customer_country: country,
         customer_city: city,
         shipping_cost: shippingCost,
