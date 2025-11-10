@@ -171,6 +171,7 @@ class Order(db.Model):
     order_id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
+    customer_email = db.Column(db.String(100), nullable=True)
     customer_address = db.Column(db.String(255), nullable=False)
     customer_country = db.Column(db.String(50), nullable=False)
     customer_city = db.Column(db.String(100), nullable=False)
@@ -210,7 +211,36 @@ def format_product(product):
         "specs": specs
     }
 
+def ping_google_sitemap():
+    """Notify Google of sitemap update"""
+    try:
+        import requests
+        requests.get('http://www.google.com/ping?sitemap=https://autoadeal.com/sitemap.xml', timeout=5)
+        print("✅ Pinged Google about sitemap update")
+    except:
+        pass  # Don't fail if ping fails
+    
 # ---------------- ROUTES ----------------
+@app.route('/subcategory/<int:subcategory_id>')
+@app.route('/subcategory/<int:subcategory_id>/<path:name>')
+def redirect_to_subcategory(subcategory_id, name=None):
+    """Redirect /subcategory/1/name to /#subcategory/1/name"""
+    from urllib.parse import quote
+    if name:
+        return redirect(f'/#subcategory/{subcategory_id}/{quote(name)}')
+    return redirect(f'/#subcategory/{subcategory_id}')
+
+@app.route('/product/<int:product_id>')
+def redirect_to_product(product_id):
+    """Redirect /product/1 to /#product/1"""
+    return redirect(f'/#product/{product_id}')
+
+@app.route('/brand/<path:brand_name>')
+def redirect_to_brand(brand_name):
+    """Redirect /brand/BMW to /#brand/BMW"""
+    from urllib.parse import quote
+    return redirect(f'/#brand/{quote(brand_name)}')
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -935,6 +965,8 @@ def api_admin_create_product():
                     db.session.add(spec)
         
         db.session.commit()
+
+        ping_google_sitemap()  # Notify Google
         
         return jsonify({
             'success': True,
@@ -1138,6 +1170,132 @@ def send_order_notification_email(order, cart_items):
         print(f"❌ Failed to send email: {e}")
         raise
 
+
+def send_customer_confirmation_email(order, cart_items, customer_email):
+    """Send confirmation email to customer"""
+    if mail is None:
+        print("⚠️ Email notifications disabled")
+        return
+    
+    try:
+        # Build order items HTML
+        items_html = ""
+        for item in cart_items:
+            items_html += f"""
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{item['name']}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">{item['quantity']}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">{int(item['price'] * item['quantity'])} ALL</td>
+            </tr>
+            """
+        
+        msg = Message(
+            subject=f'✅ Konfirmim Porosie #{order.order_id} - Auto Adeal',
+            recipients=[customer_email],
+            html=f"""
+            <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+                        <div style="background-color: #dc2626; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                            <h1 style="margin: 0; font-size: 28px;">Faleminderit për Porosinë!</h1>
+                            <p style="margin: 15px 0 0 0; font-size: 18px;">Porosia Juaj #${order.order_id}</p>
+                        </div>
+                        
+                        <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px;">
+                            <div style="background-color: #dcfce7; border-left: 4px solid #16a34a; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
+                                <p style="margin: 0; color: #166534; font-weight: bold;">✅ Porosia juaj u pranua me sukses!</p>
+                                <p style="margin: 5px 0 0 0; color: #166534; font-size: 14px;">Do t'ju kontaktojmë së shpejti për konfirmim.</p>
+                            </div>
+                            
+                            <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 20px;">Detajet e Dërgesës</h2>
+                            <table style="width: 100%; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 8px 0; color: #666;">Emri:</td>
+                                    <td style="padding: 8px 0; font-weight: bold;">{order.customer_name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #666;">Telefoni:</td>
+                                    <td style="padding: 8px 0; font-weight: bold;">{order.customer_phone}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #666;">Adresa:</td>
+                                    <td style="padding: 8px 0; font-weight: bold;">{order.customer_address if hasattr(order, 'customer_address') else ''}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #666;">Qyteti:</td>
+                                    <td style="padding: 8px 0; font-weight: bold;">{order.customer_city}, {order.customer_country}</td>
+                                </tr>
+                            </table>
+                            
+                            <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 20px;">Produktet e Porositura</h2>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+                                <thead>
+                                    <tr style="background-color: #f3f4f6;">
+                                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Produkti</th>
+                                        <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Sasia</th>
+                                        <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Çmimi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items_html}
+                                </tbody>
+                            </table>
+                            
+                            <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
+                                    <span>Nëntotali:</span>
+                                    <span>{int(order.total_amount - order.shipping_cost)} ALL</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 16px;">
+                                    <span>Dërgesa:</span>
+                                    <span>{int(order.shipping_cost)} ALL</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 22px; font-weight: bold; color: #dc2626; padding-top: 15px; border-top: 2px solid #ddd;">
+                                    <span>TOTALI:</span>
+                                    <span>{int(order.total_amount)} ALL</span>
+                                </div>
+                            </div>
+                            
+                            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
+                                <p style="margin: 0; font-size: 14px; color: #92400e;">
+                                    <strong>💳 Pagesa në Dorëzim</strong><br>
+                                    Do të paguani kur të merrni produktet. Asnjë pagesë paraprak nuk kërkohet.
+                                </p>
+                            </div>
+                            
+                            <h3 style="color: #1f2937; margin-bottom: 15px;">Çfarë Ndodh Tani?</h3>
+                            <ol style="color: #4b5563; line-height: 1.8; padding-left: 20px;">
+                                <li>Do t'ju kontaktojmë brenda 24 orëve për të konfirmuar porosinë.</li>
+                                <li>Do të përgatisim produktet tuaja për dërgim.</li>
+                                <li>Do t'ju njoftojmë kur porosia të jetë në rrugë.</li>
+                                <li>Produktet do t'ju dorëzohen në adresën tuaj.</li>
+                            </ol>
+                            
+                            <div style="text-align: center; margin-top: 30px;">
+                                <p style="color: #666; margin-bottom: 15px;">Keni pyetje? Na kontaktoni:</p>
+                                <p style="margin: 5px 0;">📞 <a href="tel:+355685526714" style="color: #dc2626; text-decoration: none;">+355 68 552 6714</a></p>
+                                <p style="margin: 5px 0;">📧 <a href="mailto:autoadeal@gmail.com" style="color: #dc2626; text-decoration: none;">autoadeal@gmail.com</a></p>
+                                <p style="margin: 5px 0;">📱 <a href="https://www.instagram.com/autoadeal" style="color: #dc2626; text-decoration: none;">@autoadeal</a></p>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 12px;">
+                            <p style="margin: 5px 0;">Auto Adeal - Aksesore dhe Pjesë për Makina</p>
+                            <p style="margin: 5px 0;">Sarandë, Shqipëri</p>
+                            <p style="margin: 5px 0;">Porosia u krye më {order.created_at.strftime('%d/%m/%Y në %H:%M')}</p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """
+        )
+        
+        mail.send(msg)
+        print(f"✅ Customer confirmation email sent for order #{order.order_id}")
+        
+    except Exception as e:
+        print(f"❌ Failed to send customer email: {e}")
+
 @app.route('/api/order', methods=['POST'])
 def create_order():
     """Save customer order"""
@@ -1172,9 +1330,13 @@ def create_order():
         # Send email notification
         try:
             send_order_notification_email(order, cart_items)
+            
+            # Send confirmation to customer if email provided
+            customer_email = data.get('customer_email')
+            if customer_email:
+                send_customer_confirmation_email(order, cart_items, customer_email)
         except Exception as e:
             print(f"⚠️ Email notification failed: {e}")
-            # Don't fail the order if email fails
         
         return jsonify({
             'success': True,
@@ -1400,11 +1562,22 @@ def sitemap():
             'priority': priority
         })
     
+    # All subcategories
+    from sqlalchemy import distinct
+    subcategories = Subcategory.query.all()
+    for sub in subcategories:
+        pages.append({
+            'loc': f'https://autoadeal.com/subcategory/{sub.subcategory_id}/{sub.subcategory_name.replace(" ", "-")}',
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'weekly',
+            'priority': '0.8'
+        })
+
     # All products
     products = Product.query.filter(Product.main_image.isnot(None)).all()
     for product in products:
         pages.append({
-            'loc': f'https://autoadeal.com/#product/{product.product_id}',
+            'loc': f'https://autoadeal.com/product/{product.product_id}',
             'lastmod': datetime.now().strftime('%Y-%m-%d'),
             'changefreq': 'weekly',
             'priority': '0.8'
