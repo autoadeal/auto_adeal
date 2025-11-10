@@ -8,6 +8,7 @@ import secrets
 import random
 import os
 import psutil
+import json
 
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 # ---------------- CONFIG ----------------
@@ -154,6 +155,20 @@ class SiteSettings(db.Model):
     setting_key = db.Column(db.String(100), unique=True, nullable=False)
     setting_value = db.Column(db.Text)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Order(db.Model):
+    __tablename__ = 'order'
+    order_id = db.Column(db.Integer, primary_key=True)
+    customer_name = db.Column(db.String(100), nullable=False)
+    customer_phone = db.Column(db.String(20), nullable=False)
+    customer_country = db.Column(db.String(50), nullable=False)
+    customer_city = db.Column(db.String(100), nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
+    shipping_cost = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='pending')  # pending, confirmed, shipped, delivered, cancelled
+    order_items = db.Column(db.Text, nullable=False)  # JSON string of cart items
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    notes = db.Column(db.Text, nullable=True)
 
 # ---------------- HELPER FUNCTIONS ----------------
 def allowed_file(filename):
@@ -1009,6 +1024,117 @@ def api_admin_subcategory_specs(subcategory_id):
         })
     return jsonify(specs)
 
+@app.route('/api/order', methods=['POST'])
+def create_order():
+    """Save customer order"""
+    try:
+        data = request.json
+        
+        if not data or not data.get('customer_name') or not data.get('customer_phone'):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Calculate totals
+        cart_items = data.get('cart_items', [])
+        subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
+        shipping_cost = data.get('shipping_cost', 0)
+        total = subtotal + shipping_cost
+        
+        # Create order
+        order = Order(
+            customer_name=data['customer_name'],
+            customer_phone=data['customer_phone'],
+            customer_country=data.get('customer_country', ''),
+            customer_city=data.get('customer_city', ''),
+            total_amount=total,
+            shipping_cost=shipping_cost,
+            order_items=json.dumps(cart_items),  # Store as JSON string
+            status='pending'
+        )
+        
+        db.session.add(order)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'order_id': order.order_id,
+            'message': 'Order placed successfully'
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Order creation error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/orders', methods=['GET'])
+@require_admin
+def get_orders():
+    """Get all orders for admin"""
+    try:
+        status = request.args.get('status', None)
+        
+        if status:
+            orders = Order.query.filter_by(status=status).order_by(Order.created_at.desc()).all()
+        else:
+            orders = Order.query.order_by(Order.created_at.desc()).all()
+        
+        orders_list = []
+        for order in orders:
+            orders_list.append({
+                'order_id': order.order_id,
+                'customer_name': order.customer_name,
+                'customer_phone': order.customer_phone,
+                'customer_country': order.customer_country,
+                'customer_city': order.customer_city,
+                'total_amount': order.total_amount,
+                'shipping_cost': order.shipping_cost,
+                'status': order.status,
+                'order_items': json.loads(order.order_items),
+                'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+                'notes': order.notes
+            })
+        
+        return jsonify(orders_list), 200
+        
+    except Exception as e:
+        print(f"❌ Get orders error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/order/<int:order_id>/status', methods=['PUT'])
+@require_admin
+def update_order_status(order_id):
+    """Update order status"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        data = request.json
+        
+        if 'status' in data:
+            order.status = data['status']
+        if 'notes' in data:
+            order.notes = data['notes']
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Order updated'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/order/<int:order_id>', methods=['DELETE'])
+@require_admin
+def delete_order(order_id):
+    """Delete an order"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        db.session.delete(order)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Order deleted'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
 @app.route('/api/track-view', methods=['POST'])
 def track_product_view():
     """Track product views for relevance learning"""
@@ -1178,6 +1304,12 @@ def sitemap():
     response = make_response(sitemap_xml)
     response.headers["Content-Type"] = "application/xml"
     return response
+
+@app.route('/admin/orders')
+@require_admin
+def admin_orders():
+    """Admin orders page"""
+    return render_template('admin_orders.html')
 
 @app.route('/robots.txt')
 def robots():
