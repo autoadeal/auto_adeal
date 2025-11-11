@@ -10,6 +10,16 @@ import random
 import os
 import psutil
 import json
+from threading import Thread
+
+def send_async_email(app, msg):
+    """Send email asynchronously"""
+    with app.app_context():
+        try:
+            mail.send(msg)
+            print("✅ Email sent successfully")
+        except Exception as e:
+            print(f"❌ Email failed: {e}")
 
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 # ---------------- CONFIG ----------------
@@ -46,13 +56,23 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Email configuration for Gmail
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'autoadeal@gmail.com'
-app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD', '')  # Set this in Railway
-app.config['MAIL_DEFAULT_SENDER'] = 'autoadeal@gmail.com'
-mail = Mail(app)
+try:
+    from flask_mail import Mail, Message
+    
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = 'autoadeal@gmail.com'
+    app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD', '')
+    app.config['MAIL_DEFAULT_SENDER'] = 'autoadeal@gmail.com'
+    
+    mail = Mail(app)
+    MAIL_ENABLED = True
+    print("✅ Flask-Mail initialized successfully")
+except Exception as e:
+    print(f"⚠️ Flask-Mail initialization failed: {e}")
+    mail = None
+    MAIL_ENABLED = False
 
 db = SQLAlchemy(app)
 
@@ -169,18 +189,29 @@ class SiteSettings(db.Model):
 class Order(db.Model):
     __tablename__ = 'order'
     order_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=True)  # NEW
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
     customer_email = db.Column(db.String(100), nullable=True)
     customer_address = db.Column(db.String(255), nullable=False)
-    customer_country = db.Column(db.String(50), nullable=False)
     customer_city = db.Column(db.String(100), nullable=False)
+    customer_country = db.Column(db.String(50), nullable=False)
     total_amount = db.Column(db.Float, nullable=False)
     shipping_cost = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(20), default='pending')  # pending, confirmed, shipped, delivered, cancelled
-    order_items = db.Column(db.Text, nullable=False)  # JSON string of cart items
+    status = db.Column(db.String(20), default='pending')  # pending, confirmed, in_warehouse, shipped, out_for_delivery, delivered, failed_to_deliver, cancelled
+    order_items = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     notes = db.Column(db.Text, nullable=True)
+    # Relationship to status history
+    status_history = db.relationship('OrderStatusHistory', backref='order', cascade='all, delete-orphan', order_by='OrderStatusHistory.created_at')
+
+class OrderStatusHistory(db.Model):
+    __tablename__ = 'order_status_history'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.order_id'), nullable=False)
+    status = db.Column(db.String(20), nullable=False)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class BlogPost(db.Model):
     __tablename__ = 'blog_post'
@@ -231,6 +262,24 @@ def ping_google_sitemap():
     except:
         pass  # Don't fail if ping fails
     
+def create_admin_notification_email(order, cart_items):
+    """Create admin notification email message"""
+    # ... (move all the HTML building code here)
+    return Message(
+        subject=f'🔔 New Order #{order.order_id} - Auto Adeal',
+        recipients=['autoadeal@gmail.com'],
+        html=html_content
+    )
+
+def create_customer_confirmation_email(order, cart_items, customer_email):
+    """Create customer confirmation email message"""
+    # ... (move all the HTML building code here)
+    return Message(
+        subject=f'✅ Konfirmim Porosie #{order.order_id} - Auto Adeal',
+        recipients=[customer_email],
+        html=html_content
+    )
+
 # ---------------- ROUTES ----------------
 @app.route('/subcategory/<int:subcategory_id>')
 @app.route('/subcategory/<int:subcategory_id>/<path:name>')
@@ -373,20 +422,33 @@ def admin_blog():
     """Admin blog management page"""
     return render_template('admin_blog.html')
 
-@app.route('/test-email')
+@app.route('/admin/test-email')
+@require_admin
 def test_email():
-    """Test email sending"""
+    """Test email configuration"""
+    if not MAIL_ENABLED:
+        return jsonify({'success': False, 'error': 'Email system is disabled'})
+    
     try:
-        from flask_mail import Message
         msg = Message(
-            subject='Test Email - Auto Adeal',
+            subject='🧪 Test Email - Auto Adeal',
             recipients=['autoadeal@gmail.com'],
-            body='This is a test email. If you receive this, email is working!'
+            body='This is a test email.'
         )
         mail.send(msg)
-        return "Email sent successfully! Check autoadeal@gmail.com"
+        return jsonify({'success': True, 'message': 'Test email sent'})
     except Exception as e:
-        return f"Email failed: {str(e)}"
+        return jsonify({'success': False, 'error': str(e)})
+    
+@app.route('/blog')
+def blog_page():
+    """Blog listing page"""
+    return render_template('blog.html')
+
+@app.route('/blog/<int:post_id>')
+def blog_post_page(post_id):
+    """Individual blog post page"""
+    return render_template('blog_post.html')
     
 # ---------------- API ENDPOINTS ----------------
 
@@ -1200,6 +1262,9 @@ def api_admin_subcategory_specs(subcategory_id):
 
 def send_order_notification_email(order, cart_items):
     """Send email notification when new order is placed"""
+    if not MAIL_ENABLED or mail is None:
+        print("⚠️ Email system disabled - skipping notification")
+        return
     try:
         # Build order items HTML
         items_html = ""
@@ -1304,8 +1369,8 @@ def send_order_notification_email(order, cart_items):
 
 def send_customer_confirmation_email(order, cart_items, customer_email):
     """Send confirmation email to customer"""
-    if mail is None:
-        print("⚠️ Email notifications disabled")
+    if not MAIL_ENABLED or mail is None:
+        print("⚠️ Email system disabled - skipping notification")
         return
     
     try:
@@ -1442,11 +1507,21 @@ def create_order():
         shipping_cost = data.get('shipping_cost', 0)
         total = subtotal + shipping_cost
         
+        # Get user_id if email provided
+        user_id = None
+        customer_email = data.get('customer_email')
+        if customer_email:
+            user = User.query.filter_by(email=customer_email).first()
+            if user:
+                user_id = user.user_id
+
         # Create order
         order = Order(
+            user_id=user_id,
             customer_name=data['customer_name'],
             customer_phone=data['customer_phone'],
-            customer_address=data.get('customer_address', ''),  # NEW
+            customer_email=customer_email,
+            customer_address=data.get('customer_address', ''),
             customer_city=data.get('customer_city', ''),
             customer_country=data.get('customer_country', ''),
             total_amount=total,
@@ -1458,20 +1533,25 @@ def create_order():
         db.session.add(order)
         db.session.commit()
         
-        # Send email notification
-        try:
-            print("📧 Attempting to send emails...")
-            send_order_notification_email(order, cart_items)
-            print("✅ Admin email sent")
-            # Send confirmation to customer if email provided
-            customer_email = data.get('customer_email')
-            if customer_email:
-                print(f"📧 Sending customer email to {customer_email}")
-                send_customer_confirmation_email(order, cart_items, customer_email)
-                print("✅ Customer email sent")
-        except Exception as e:
-            print(f"⚠️ Email notification failed: {e}")
-
+        print(f"✅ Order #{order.order_id} created successfully")
+        
+        # Send emails asynchronously (non-blocking)
+        if MAIL_ENABLED and mail:
+            try:
+                # Create email messages
+                admin_msg = create_admin_notification_email(order, cart_items)
+                
+                # Send in background thread
+                Thread(target=send_async_email, args=(app, admin_msg)).start()
+                
+                if customer_email:
+                    customer_msg = create_customer_confirmation_email(order, cart_items, customer_email)
+                    Thread(target=send_async_email, args=(app, customer_msg)).start()
+                
+                print("📧 Emails queued for sending")
+            except Exception as e:
+                print(f"⚠️ Email queueing failed: {e}")
+        
         return jsonify({
             'success': True,
             'order_id': order.order_id,
@@ -1481,6 +1561,58 @@ def create_order():
     except Exception as e:
         db.session.rollback()
         print(f"❌ Order creation error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 400
+    
+@app.route('/api/user/orders', methods=['POST'])
+def get_user_orders():
+    """Get orders for a specific user by email"""
+    try:
+        data = request.json
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({'success': False, 'error': 'Email required'}), 400
+        
+        # Get user
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            return jsonify({'success': False, 'orders': []}), 200
+        
+        # Get all orders for this user
+        orders = Order.query.filter_by(user_id=user.user_id).order_by(Order.created_at.desc()).all()
+        
+        orders_list = []
+        for order in orders:
+            # Get status history
+            history = OrderStatusHistory.query.filter_by(order_id=order.order_id).order_by(OrderStatusHistory.created_at.asc()).all()
+            
+            orders_list.append({
+                'order_id': order.order_id,
+                'customer_name': order.customer_name,
+                'customer_phone': order.customer_phone,
+                'customer_address': order.customer_address,
+                'customer_city': order.customer_city,
+                'customer_country': order.customer_country,
+                'total_amount': order.total_amount,
+                'shipping_cost': order.shipping_cost,
+                'status': order.status,
+                'order_items': json.loads(order.order_items),
+                'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+                'notes': order.notes,
+                'status_history': [
+                    {
+                        'status': h.status,
+                        'notes': h.notes,
+                        'created_at': h.created_at.strftime('%Y-%m-%d %H:%M')
+                    } for h in history
+                ]
+            })
+        
+        return jsonify({'success': True, 'orders': orders_list}), 200
+        
+    except Exception as e:
+        print(f"❌ Get user orders error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 400
 
 @app.route('/api/admin/orders', methods=['GET'])
@@ -1526,8 +1658,16 @@ def update_order_status(order_id):
         order = Order.query.get_or_404(order_id)
         data = request.json
         
+        # Create status history entry
         if 'status' in data:
+            history = OrderStatusHistory(
+                order_id=order_id,
+                status=data['status'],
+                notes=data.get('notes')
+            )
+            db.session.add(history)
             order.status = data['status']
+        
         if 'notes' in data:
             order.notes = data['notes']
         

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Auto Adeal | Këshilla për Makinën Tuaj</title>
+    <meta name="description" content="Lexo artikujt tanë për mirëmbajtjen e makinës, zgjedhjen e pjesëve dhe këshilla të tjera të dobishme">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Blog Header -->
+    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="container mx-auto px-4 md:px-6 py-4 max-w-6xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <img src="/static/logo.png" alt="Auto Adeal" class="h-12 w-auto" onerror="this.style.display='none'">
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold text-black">Auto Adeal Blog</h1>
+                        <p class="text-xs md:text-sm text-gray-600">Këshilla dhe Udhëzime për Makinën Tuaj</p>
+                    </div>
+                </div>
+                <a href="/" class="text-red-600 hover:text-red-700 font-medium flex items-center gap-2">
+                    <span class="hidden md:inline">Kthehu në Dyqan</span>
+                    <span class="md:hidden">Dyqan</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Blog Content -->
+    <div class="container mx-auto px-4 md:px-6 py-12 max-w-6xl">
+        <div id="blog-posts-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Posts will load here -->
+        </div>
+        
+        <div id="no-posts-message" class="text-center py-20">
+            <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+            </svg>
+            <h3 class="text-2xl font-bold text-gray-700 mb-2">Asnjë Artikull Ende</h3>
+            <p class="text-gray-500">Artikujt e rinj do të shfaqen së shpejti!</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadBlogPosts() {
+            try {
+                const response = await fetch('/api/blog/posts');
+                const posts = await response.json();
+                
+                const container = document.getElementById('blog-posts-container');
+                const noPostsMsg = document.getElementById('no-posts-message');
+                
+                if (posts.length === 0) {
+                    container.style.display = 'none';
+                    noPostsMsg.style.display = 'block';
+                    return;
+                }
+                
+                container.style.display = 'grid';
+                noPostsMsg.style.display = 'none';
+                container.innerHTML = '';
+                
+                posts.forEach(post => {
+                    const card = createBlogPostCard(post);
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Failed to load blog posts:', error);
+            }
+        }
+
+        function createBlogPostCard(post) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer';
+            card.onclick = () => window.location.href = `/blog/${post.id}`;
+            
+            const imageUrl = post.image || '/static/blog-default.jpg';
+            const excerpt = post.content.substring(0, 150) + '...';
+            
+            card.innerHTML = `
+                <img src="${imageUrl}" alt="${post.title}" class="w-full h-48 object-cover" onerror="this.src='/static/blog-default.jpg'">
+                <div class="p-6">
+                    <div class="text-xs text-gray-500 mb-2">${new Date(post.created_at).toLocaleDateString('sq-AL')}</div>
+                    <h3 class="text-xl font-bold text-black mb-3 line-clamp-2">${post.title}</h3>
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-3">${excerpt}</p>
+                    <button class="text-red-600 hover:text-red-700 font-medium text-sm">
+                        Lexo më shumë →
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        loadBlogPosts();
+    </script>
+</body>
+</html>

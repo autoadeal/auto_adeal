@@ -125,8 +125,11 @@
                     <select id="status-${order.order_id}" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
                         <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                        <option value="in_warehouse" ${order.status === 'in_warehouse' ? 'selected' : ''}>In Warehouse</option>
                         <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                        <option value="out_for_delivery" ${order.status === 'out_for_delivery' ? 'selected' : ''}>Out for Delivery</option>
                         <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="failed_to_deliver" ${order.status === 'failed_to_deliver' ? 'selected' : ''}>Failed to Deliver</option>
                         <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                     </select>
                     <button onclick="updateOrderStatus(${order.order_id})" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
@@ -143,12 +146,13 @@
         
         async function updateOrderStatus(orderId) {
             const status = document.getElementById(`status-${orderId}`).value;
+            const notes = prompt('Add notes for this status update (optional):');
             
             try {
                 const response = await fetch(`/api/admin/order/${orderId}/status`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify({ status, notes })
                 });
                 
                 const result = await response.json();
