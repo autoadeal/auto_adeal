@@ -182,6 +182,17 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     notes = db.Column(db.Text, nullable=True)
 
+class BlogPost(db.Model):
+    __tablename__ = 'blog_post'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    image = db.Column(db.String(255), nullable=True)
+    slug = db.Column(db.String(200), unique=True, nullable=False)
+    published = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 # ---------------- HELPER FUNCTIONS ----------------
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
@@ -257,6 +268,111 @@ def health():
         'cpu_percent': process.cpu_percent()
     }
 
+#BLOG PAGE ROUTES
+@app.route('/api/blog/posts')
+def get_blog_posts():
+    """Get all published blog posts"""
+    posts = BlogPost.query.filter_by(published=True).order_by(BlogPost.created_at.desc()).all()
+    return jsonify([{
+        'id': post.id,
+        'title': post.title,
+        'content': post.content,
+        'image': post.image,
+        'slug': post.slug,
+        'created_at': post.created_at.strftime('%Y-%m-%d')
+    } for post in posts])
+
+@app.route('/api/blog/post/<int:post_id>')
+def get_blog_post(post_id):
+    """Get single blog post"""
+    post = BlogPost.query.get_or_404(post_id)
+    return jsonify({
+        'id': post.id,
+        'title': post.title,
+        'content': post.content,
+        'image': post.image,
+        'slug': post.slug,
+        'created_at': post.created_at.strftime('%Y-%m-%d')
+    })
+
+@app.route('/api/admin/blog/posts', methods=['GET'])
+@require_admin
+def admin_get_blog_posts():
+    """Get all blog posts for admin"""
+    posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
+    return jsonify([{
+        'id': post.id,
+        'title': post.title,
+        'content': post.content[:100] + '...' if len(post.content) > 100 else post.content,
+        'image': post.image,
+        'published': post.published,
+        'created_at': post.created_at.strftime('%Y-%m-%d')
+    } for post in posts])
+
+@app.route('/api/admin/blog/post', methods=['POST'])
+@require_admin
+def admin_create_blog_post():
+    """Create new blog post"""
+    try:
+        data = request.json
+        
+        # Generate slug from title
+        slug = data['title'].lower().replace(' ', '-').replace('ë', 'e').replace('ç', 'c')
+        
+        post = BlogPost(
+            title=data['title'],
+            content=data['content'],
+            image=data.get('image'),
+            slug=slug,
+            published=data.get('published', True)
+        )
+        
+        db.session.add(post)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'post_id': post.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/blog/post/<int:post_id>', methods=['PUT'])
+@require_admin
+def admin_update_blog_post(post_id):
+    """Update blog post"""
+    try:
+        post = BlogPost.query.get_or_404(post_id)
+        data = request.json
+        
+        post.title = data.get('title', post.title)
+        post.content = data.get('content', post.content)
+        post.image = data.get('image', post.image)
+        post.published = data.get('published', post.published)
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/blog/post/<int:post_id>', methods=['DELETE'])
+@require_admin
+def admin_delete_blog_post(post_id):
+    """Delete blog post"""
+    try:
+        post = BlogPost.query.get_or_404(post_id)
+        db.session.delete(post)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+    
+@app.route('/admin/blog')
+@require_admin
+def admin_blog():
+    """Admin blog management page"""
+    return render_template('admin_blog.html')
+    
 # ---------------- API ENDPOINTS ----------------
 
 @app.route('/api/categories')
