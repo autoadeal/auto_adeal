@@ -372,6 +372,21 @@ def admin_delete_blog_post(post_id):
 def admin_blog():
     """Admin blog management page"""
     return render_template('admin_blog.html')
+
+@app.route('/test-email')
+def test_email():
+    """Test email sending"""
+    try:
+        from flask_mail import Message
+        msg = Message(
+            subject='Test Email - Auto Adeal',
+            recipients=['autoadeal@gmail.com'],
+            body='This is a test email. If you receive this, email is working!'
+        )
+        mail.send(msg)
+        return "Email sent successfully! Check autoadeal@gmail.com"
+    except Exception as e:
+        return f"Email failed: {str(e)}"
     
 # ---------------- API ENDPOINTS ----------------
 
