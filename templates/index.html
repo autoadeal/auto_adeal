@@ -858,14 +858,17 @@ header input {
      </div>
     </div>
 
-    <!-- Privacy Policy & Terms Page -->
+    <!-- Privacy Policy Page -->
     <div id="privacy-policy-page" class="page-content" style="display: none;">
       <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-black mb-8">Privacy Policy & Terms and Conditions</h1>
+        <div class="flex justify-between items-center mb-8">
+          <h1 class="text-3xl font-bold text-black">Privacy Policy</h1>
+          <button onclick="showPage('home')" class="text-red-600 hover:text-red-700 font-medium">
+            Kthehu në Kryefaqe →
+          </button>
+        </div>
         
-        <div class="bg-white rounded-xl shadow-md p-8 mb-8">
-          <h2 class="text-2xl font-bold text-red-600 mb-4">Privacy Policy</h2>
-          
+        <div class="bg-white rounded-xl shadow-md p-8">
           <div class="space-y-4 text-gray-700">
             <p class="font-semibold">Last updated: November 2024</p>
             
@@ -908,10 +911,20 @@ header input {
             <p class="font-semibold">Tel: +355 68 552 6714</p>
           </div>
         </div>
+      </div>
+    </div>
+    
+    <!-- Terms & Conditions Page -->
+    <div id="terms-conditions-page" class="page-content" style="display: none;">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+          <h1 class="text-3xl font-bold text-black">Terms and Conditions</h1>
+          <button onclick="showPage('home')" class="text-red-600 hover:text-red-700 font-medium">
+            Kthehu në Kryefaqe →
+          </button>
+        </div>
         
         <div class="bg-white rounded-xl shadow-md p-8">
-          <h2 class="text-2xl font-bold text-red-600 mb-4">Terms and Conditions</h2>
-          
           <div class="space-y-4 text-gray-700">
             <h3 class="text-xl font-bold text-black mt-6">1. Pranimin e Kushteve</h3>
             <p>Duke përdorur faqen tonë dhe duke bërë porosi, ju pranoni këto kushte dhe kushtet.</p>
@@ -957,20 +970,18 @@ header input {
             </ul>
           </div>
         </div>
-        
-        <button onclick="showPage('home')" class="mt-6 text-red-600 hover:text-red-700 font-medium">
-          ← Kthehu në Kryefaqe
-        </button>
       </div>
     </div>
-    
-    <!-- Terms Page -->
-    <div id="terms-page" class="page-content" style="display: none;"></div>
     
     <!-- Refund & Shipping Policy Page -->
     <div id="refund-policy-page" class="page-content" style="display: none;">
       <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-black mb-8">Refund & Shipping Policy</h1>
+        <div class="flex justify-between items-center mb-8">
+          <h1 class="text-3xl font-bold text-black">Refund & Shipping Policy</h1>
+          <button onclick="showPage('home')" class="text-red-600 hover:text-red-700 font-medium">
+            Kthehu në Kryefaqe →
+          </button>
+        </div>
         
         <div class="bg-white rounded-xl shadow-md p-8 mb-8">
           <h2 class="text-2xl font-bold text-red-600 mb-4">Politika e Dërgesës</h2>
@@ -1060,8 +1071,8 @@ header input {
               <li>Pasi të verifikohet produkti, do t'ju rimbursojmë</li>
             </ol>
             
-            <div class="bg-red-50 border-l-4 border-red-500 p-4 mt-6">
-              <h3 class="font-bold text-red-900 mb-2">⚠️ Produktet që NUK Pranohen:</h3>
+            <div class="bg-gray-900 text-white p-6 rounded-lg mt-6">
+              <h3 class="font-bold text-white mb-3">⚠️ Produktet që NUK Pranohen:</h3>
               <ul class="list-disc pl-6 space-y-2">
                 <li>Produkte të përdorura ose të instaluara</li>
                 <li>Produkte pa paketim origjinal</li>
@@ -1077,17 +1088,18 @@ header input {
             <p>Kostoja e dërgesës për kthim mbahet nga klienti, përveç rasteve kur produkti është defekt ose i gabuar.</p>
           </div>
         </div>
-        
-        <button onclick="showPage('home')" class="mt-6 text-red-600 hover:text-red-700 font-medium">
-          ← Kthehu në Kryefaqe
-        </button>
       </div>
     </div>
 
     <!-- About Us Page -->
     <div id="about-page" class="page-content" style="display: none;">
       <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-black mb-8">Rreth Nesh</h1>
+        <div class="flex justify-between items-center mb-8">
+          <h1 class="text-3xl font-bold text-black">Rreth Nesh</h1>
+          <button onclick="showPage('home')" class="text-red-600 hover:text-red-700 font-medium">
+            Kthehu në Kryefaqe →
+          </button>
+        </div>
         
         <div class="bg-white rounded-xl shadow-md p-8 mb-8">
           <div class="flex flex-col md:flex-row items-center gap-8 mb-8">
@@ -1157,9 +1169,6 @@ header input {
             </div>
           </div>
         </div>
-        
-        <button onclick="showPage('home')" class="mt-6 text-red-600 hover:text-red-700 font-medium">← Kthehu në Kryefaqe
-        </button>
       </div>
     </div>
 
@@ -1225,20 +1234,21 @@ header input {
   </div>
   
   <!-- Footer -->
-  <footer class="bg-gray-900 text-white py-12 mt-auto">
+  <footer class="bg-black text-white py-8 md:py-12 mt-auto">
     <div class="container mx-auto px-4 md:px-6 max-w-7xl">
-      <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
-        <!-- Logo Section -->
+      <!-- Desktop Layout -->
+      <div class="hidden md:flex flex-col items-center justify-center gap-8">
+        <!-- Logo -->
         <div class="flex-shrink-0">
-          <img src="/static/logo.png" alt="Auto Adeal" class="h-16 w-auto" onerror="this.style.display='none'">
+          <img src="/static/logo.png" alt="Auto Adeal" class="h-20 w-auto" onerror="this.style.display='none'">
         </div>
         
         <!-- Links Grid -->
-        <div class="grid grid-cols-3 gap-x-8 gap-y-4 text-center md:text-left text-sm">
+        <div class="grid grid-cols-3 gap-x-16 gap-y-4 text-center text-sm">
           <!-- Column 1 -->
           <div class="space-y-3">
             <button onclick="showPage('privacy-policy')" class="block hover:text-red-400 transition-colors">Privacy Policy</button>
-            <button onclick="showPage('terms')" class="block hover:text-red-400 transition-colors">Terms & Conditions</button>
+            <button onclick="showPage('terms-conditions')" class="block hover:text-red-400 transition-colors">Terms & Conditions</button>
           </div>
           
           <!-- Column 2 -->
@@ -1255,8 +1265,20 @@ header input {
         </div>
       </div>
       
+      <!-- Mobile Layout (No Logo) -->
+      <div class="md:hidden">
+        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-center text-sm">
+          <button onclick="showPage('privacy-policy')" class="hover:text-red-400 transition-colors">Privacy Policy</button>
+          <button onclick="showPage('terms-conditions')" class="hover:text-red-400 transition-colors">Terms & Conditions</button>
+          <button onclick="showPage('blog')" class="hover:text-red-400 transition-colors">Blog</button>
+          <button onclick="showPage('refund-policy')" class="hover:text-red-400 transition-colors">Refund & Shipping</button>
+          <button onclick="showPage('about')" class="hover:text-red-400 transition-colors">About Us</button>
+          <button onclick="showPage('contact')" class="hover:text-red-400 transition-colors">Contact Us</button>
+        </div>
+      </div>
+      
       <!-- Copyright -->
-      <div class="text-center mt-8 pt-8 border-t border-gray-700 text-sm text-gray-400">
+      <div class="text-center mt-8 pt-4 border-t border-gray-700 text-xs text-gray-400">
         <p>&copy; 2025 Auto Adeal. Të gjitha të drejtat e rezervuara.</p>
       </div>
     </div>
@@ -3734,14 +3756,20 @@ function showPage(pageId, addToHistory = true) {
             break;
 
         case 'terms':
-            // Redirect to privacy-policy page (same page)
-            showPage('privacy-policy', false);
+        case 'terms-conditions':
+            document.getElementById('terms-conditions-page').style.display = 'block';
+            document.title = 'Terms & Conditions - Auto Adeal';
+            updateMetaTag('description', 'Kushtet dhe kushtet e përdorimit të Auto Adeal');
+            updateBreadcrumbs([
+                { name: 'Home', url: 'https://autoadeal.com' },
+                { name: 'Terms & Conditions', url: 'https://autoadeal.com/#terms-conditions' }
+            ]);
             break;
             
         case 'privacy-policy':
             document.getElementById('privacy-policy-page').style.display = 'block';
-            document.title = 'Privacy Policy & Terms - Auto Adeal';
-            updateMetaTag('description', 'Lexo politikën tonë të privatësisë dhe kushtet e përdorimit');
+            document.title = 'Privacy Policy - Auto Adeal';
+            updateMetaTag('description', 'Lexo politikën tonë të privatësisë');
             updateBreadcrumbs([
                 { name: 'Home', url: 'https://autoadeal.com' },
                 { name: 'Privacy Policy', url: 'https://autoadeal.com/#privacy-policy' }
