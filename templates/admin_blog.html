@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Blog - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-black text-white py-6 shadow-lg">
+        <div class="container mx-auto px-4 md:px-6 max-w-7xl">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl md:text-2xl font-bold">Manage Blog Posts</h1>
+                <div class="flex space-x-2">
+                    <a href="/admin" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">← Dashboard</a>
+                    <button onclick="showAddPostModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">+ New Post</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 md:px-6 py-8 max-w-7xl">
+        <div id="posts-container" class="space-y-4">
+            <!-- Posts will load here -->
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="post-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+        <div class="bg-white rounded-xl p-8 max-w-3xl w-full mx-4 my-8">
+            <h2 id="modal-title" class="text-2xl font-bold mb-6">New Blog Post</h2>
+            <form id="post-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Title *</label>
+                    <input type="text" id="post-title" required class="w-full px-4 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Image URL</label>
+                    <input type="text" id="post-image" class="w-full px-4 py-2 border rounded-lg" placeholder="/static/blog/image.jpg">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Content *</label>
+                    <textarea id="post-content" required rows="15" class="w-full px-4 py-2 border rounded-lg"></textarea>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="post-published" checked class="w-5 h-5 text-red-600">
+                    <label for="post-published" class="ml-2 text-sm font-semibold">Published</label>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="closePostModal()" class="flex-1 bg-gray-300 py-3 rounded-lg hover:bg-gray-400">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let editingPostId = null;
+
+        async function loadPosts() {
+            const response = await fetch('/api/admin/blog/posts');
+            const posts = await response.json();
+            
+            const container = document.getElementById('posts-container');
+            container.innerHTML = posts.map(post => `
+                <div class="bg-white rounded-lg shadow-md p-6 flex justify-between items-start">
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold mb-2">${post.title}</h3>
+                        <p class="text-gray-600 text-sm mb-2">${post.content}</p>
+                        <p class="text-xs text-gray-500">${post.created_at} • ${post.published ? 'Published' : 'Draft'}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="editPost(${post.id})" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit</button>
+                        <button onclick="deletePost(${post.id})" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAddPostModal() {
+            editingPostId = null;
+            document.getElementById('modal-title').textContent = 'New Blog Post';
+            document.getElementById('post-form').reset();
+            document.getElementById('post-modal').classList.remove('hidden');
+        }
+
+        async function editPost(id) {
+            const response = await fetch(`/api/blog/post/${id}`);
+            const post = await response.json();
+            
+            editingPostId = id;
+            document.getElementById('modal-title').textContent = 'Edit Blog Post';
+            document.getElementById('post-title').value = post.title;
+            document.getElementById('post-image').value = post.image || '';
+            document.getElementById('post-content').value = post.content;
+            document.getElementById('post-published').checked = post.published;
+            document.getElementById('post-modal').classList.remove('hidden');
+        }
+
+        function closePostModal() {
+            document.getElementById('post-modal').classList.add('hidden');
+        }
+
+        document.getElementById('post-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                title: document.getElementById('post-title').value,
+                image: document.getElementById('post-image').value,
+                content: document.getElementById('post-content').value,
+                published: document.getElementById('post-published').checked
+            };
+            
+            const url = editingPostId ? `/api/admin/blog/post/${editingPostId}` : '/api/admin/blog/post';
+            const method = editingPostId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert('Post saved!');
+                closePostModal();
+                loadPosts();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        });
+
+        async function deletePost(id) {
+            if (!confirm('Delete this post?')) return;
+            
+            const response = await fetch(`/api/admin/blog/post/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Post deleted!');
+                loadPosts();
+            }
+        }
+
+        loadPosts();
+    </script>
+</body>
+</html>
