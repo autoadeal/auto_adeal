@@ -265,7 +265,83 @@ def ping_google_sitemap():
 @app.route('/')
 def home():
     """Homepage"""
-    return render_template('index.html')
+    import random
+    from datetime import date
+    
+    today = date.today()
+    
+    # Check cache
+    cached = DailyFeatured.query.filter_by(featured_date=today).order_by(DailyFeatured.display_order).all()
+    
+    if cached and len(cached) > 0:
+        product_ids = [c.product_id for c in cached]
+        products = Product.query.filter(Product.product_id.in_(product_ids)).all()
+        products_dict = {p.product_id: p for p in products}
+        ordered_products = [products_dict[pid] for pid in product_ids if pid in products_dict]
+        return render_template('index.html', products=ordered_products)
+    
+    # Generate new rotation
+    all_products = Product.query.filter(
+        Product.sold_out == False,
+        Product.main_image.isnot(None),
+        Product.main_image != ''
+    ).all()
+    
+    if not all_products:
+        return render_template('index.html', products=[])
+    
+    popular_products = []
+    recent_products = []
+    older_products = []
+    
+    max_id = max([p.product_id for p in all_products])
+    recent_threshold = max_id - 30
+    
+    for product in all_products:
+        is_popular = product.is_special or (product.discount_price and product.discount_price < product.price)
+        is_recent = product.product_id > recent_threshold
+        
+        if is_popular:
+            popular_products.append(product)
+        elif is_recent:
+            recent_products.append(product)
+        else:
+            older_products.append(product)
+    
+    selected = []
+    random.shuffle(popular_products)
+    selected.extend(popular_products[:32])
+    random.shuffle(recent_products)
+    selected.extend(recent_products[:19])
+    random.shuffle(older_products)
+    selected.extend(older_products[:13])
+    
+    if len(selected) < 64:
+        remaining = [p for p in all_products if p not in selected]
+        random.shuffle(remaining)
+        needed = 64 - len(selected)
+        selected.extend(remaining[:needed])
+    
+    random.shuffle(selected)
+    selected = selected[:64]
+    
+    # Cache
+    for idx, product in enumerate(selected):
+        category = 'popular' if product in popular_products else ('recent' if product in recent_products else 'older')
+        daily_featured = DailyFeatured(
+            product_id=product.product_id,
+            featured_date=today,
+            display_order=idx,
+            weight_category=category
+        )
+        db.session.add(daily_featured)
+    
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+    
+    return render_template('index.html', products=selected)
 
 @app.route('/about')
 def about():
@@ -399,10 +475,16 @@ def product_page(product_id, name=None):
     for spec in product.specs:
         specs[spec.spec_type.name] = spec.value
     
-    # Parse images
+    # Parse images - combine main image with additional images
     images = []
+    if product.main_image:
+        images.append(product.main_image)
     if product.image_urls:
-        images = [url.strip() for url in product.image_urls.split(',') if url.strip()]
+        additional = [url.strip() for url in product.image_urls.split(',') if url.strip()]
+        images.extend(additional)
+    
+    # Limit to 4 images total
+    images = images[:4]
     
     # Get related products
     related_products = Product.query.filter(
@@ -419,7 +501,123 @@ def product_page(product_id, name=None):
 @app.route('/search')
 def search_page():
     """Search results page"""
-    return render_template('search_results.html')
+    query = request.args.get('q', '').strip()
+    
+    if not query:
+        return render_template('search_results.html', query='', products=[])
+    
+    # Use the same search logic from API
+    from urllib.parse import unquote
+    query_lower = unquote(query).lower()
+    
+    stop_words = {"per", "dhe", "ose", "te", "me", "nga", "ne", "si", "qe", "eshte", "nje", "i", "e", "a", "u"}
+    
+    synonyms = {
+        'makine': ['makin', 'auto', 'veture', 'car'],
+        'butona': ['buton', 'buttons', 'switch', 'celes', 'celsa'],
+        'xhami': ['xhamash', 'xhamat', 'xhama', 'window'],
+        'veshje': ['mbulese', 'cover', 'mbrojtese'],
+        'timoni': ['timon', 'timona', 'timonash', 'steering wheel'],
+        'leva': ['leve', 'shkop', 'kembe', 'gear', 'knob'],
+        'marshi': ['marsha', 'kamjo', 'manual', 'marshat', 'marshash', 'shift', 'shifter'],
+        'doreza': ['doreze', 'lecke', 'plastike', 'mbajtese', 'dore', 'handle'],
+        'dyersh': ['dere', 'dyert', 'dera', 'dyerve', 'door'],
+        'njesi': ['unit', 'komponent'],
+        'ac': ['air conditioner', 'air', 'ajer', 'ftohes', 'ftohesi', 'ftohsi'],
+        'vent': ['ventilator', 'kapak', 'plastike', 'plastik'],
+        'celsa': ['celsash', 'cels', 'celes', 'buton', 'butona'],
+        'celsash': ['celsa', 'cels', 'celes', 'buton', 'butona', 'key', 'keys'],
+        'varese': ['varse', 'keychain', 'holder'],
+        'aksesore': ['aksesor', 'parts', 'accessories', 'pjese'],
+        'pasqyre': ['pasqyrash', 'pasqyrat', 'pasqyr', 'mirror', 'mirrors'],
+        'dritash': ['drita', 'dritave', 'drite', 'drit', 'llampe', 'light', 'lights'],
+        'pedale': ['mbulese', 'mbulesa', 'mbrojtese', 'pedalesh', 'pedalet', 'pedals'],
+        'mbulesa': ['cover', 'mbulese', 'boot', 'roller', 'console'],
+        'sedilje': ['sendilje', 'ulse', 'ulese', 'karrige', 'karrike', 'seat', 'seats'],
+        'tapeta': ['shtresa', 'tapet', 'tepetash', 'mats', 'floor'],
+        'maskarino': ['maskarin', 'grill', 'gril', 'veshke', 'mushkri'],
+        'grila': ['maskarino', 'grill', 'maskarin', 'mjegulle', 'mjegull', 'cover'],
+        'sinjale': ['signals', 'indicator', 'indicators', 'sinjal', 'sinjalesh'],
+        'dinamike': ['dynamic', 'dinamik'],
+        'llampe': ['llampa', 'lampe', 'sinjal', 'llambe', 'llamba', 'stopash', 'drita', 'dritash', 'drite'],
+        'fenere': ['fener', 'drita', 'llampa', 'llampe', 'headlight', 'headlights'],
+        'stopa': ['tail lights', 'drita', 'mbrapme', 'mbrapa', 'stopat'],
+        'fshirese': ['pastruese', 'pastrues', 'pastrim', 'fshese', 'fshesa', 'cleaner'],
+        'leter': ['vinyl', 'wrap', 'tint', 'erresim', 'errsim'],
+        'tint': ['erresim', 'leter', 'vinyl', 'wrap', 'mbulese'],
+        'rezervuar': ['tank', 'depozite', 'depozita', 'depozit', 'mbajtese', 'reservoir'],
+        'coolant': ['antifriz', 'antifreeze', 'anti', 'freeze', 'ftohes', 'ftohje', 'coolanti', 'kullant'],
+        'xhamash': ['xhama', 'xhamat', 'xhamave', 'xhami', 'window', 'windshield'],
+        'qeramike': ['qeramik', 'graphene', 'qeramika', 'ceramic'],
+        'lecke': ['doreze', 'dorashk', 'mitt', 'glove', 'towel'],
+        'aditive': ['additive', 'aditiv', 'shtues', 'riparues', 'fuqizues', 'pastrues', 'shtese'],
+        'alkol': ['leng', 'uje'],
+        'vaj': ['lubrifikues', 'lubrifikant', 'oil', 'vaji', 'fluid', 'leng'],
+        'kapak': ['vent', 'ac', 'cover'],
+        'karikues': ['karikus', 'fuqizus', 'fuqizues', 'riparues', 'riparim', 'charger'],
+        'siguresa': ['fuse', 'sigures', 'sigurese'],
+        'universale': ['universal', 'gjitha', 'all'],
+        'halogjen': ['halogen', 'drita'],
+        'kruajtes': ['scraper', 'kruajts', 'kruarje', 'krruajtes', 'krruajts', 'krruarje'],
+        'vinyl': ['leter', 'wrap', 'vinil', 'vinyli'],
+        'vinyli': ['leter', 'wrap', 'vinil', 'vinyl'],
+        'coolanti': ['antifriz', 'antifreeze', 'anti', 'freeze', 'ftohes', 'ftohje', 'coolant', 'kullant'],
+        'qafe': ['neck', 'tub', 'trup', 'kok', 'koke'],
+        'kapsula': ['pako', 'leng', 'xhami'],
+        'shkumeberes': ['shkume', 'shkum', 'shkumues', 'shkumator', 'beres', 'foam', 'cannon', 'shishe'],
+    }
+    
+    tokens = [w.strip() for w in query_lower.split() if w.strip() and w.strip() not in stop_words]
+    
+    if not tokens:
+        return render_template('search_results.html', query=query, products=[])
+    
+    all_products = Product.query.filter(Product.main_image.isnot(None), Product.main_image != '').all()
+    scored_products = []
+    
+    for product in all_products:
+        title_text = product.product_name.lower()
+        desc_text = (product.description or '').lower()
+        tags_text = (product.tags or '').lower()
+        specs_text = ' '.join([spec.value.lower() for spec in product.specs])
+        
+        all_text = f"{title_text} {desc_text} {tags_text} {specs_text}"
+        
+        all_tokens_found = True
+        score = 0
+        
+        for token in tokens:
+            token_found = False
+            search_terms = [token]
+            if token in synonyms:
+                search_terms = synonyms[token]
+            
+            for term in search_terms:
+                if term in all_text:
+                    token_found = True
+                    if term in title_text:
+                        score += 10
+                    if term in tags_text:
+                        score += 8
+                    if term in specs_text:
+                        score += 5
+                    if term in desc_text:
+                        score += 2
+                    break
+            
+            if not token_found:
+                all_tokens_found = False
+                break
+        
+        if all_tokens_found:
+            if query_lower in title_text:
+                score += 50
+            scored_products.append((score, product))
+    
+    scored_products.sort(key=lambda x: x[0], reverse=True)
+    products = [p[1] for p in scored_products[:50]]
+    
+    return render_template('search_results.html', query=query, products=products)
 
 @app.route('/blog')
 def blog_page():

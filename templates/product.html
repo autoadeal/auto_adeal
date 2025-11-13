@@ -45,6 +45,14 @@
 {% block content %}
 
 <div class="container mx-auto px-4 md:px-6 py-8">
+    <div class="mb-4">
+        <a href="javascript:history.back()" class="text-red-600 hover:text-red-700 inline-flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Kthehu
+        </a>
+    </div>
     <!-- Mobile: Title First -->
     <h1 class="text-xl font-bold text-black mb-4 lg:hidden">{{ product.product_name }}</h1>
     
@@ -53,12 +61,16 @@
         <div class="flex items-center justify-center">
             <div class="flex flex-col lg:flex-row items-center lg:items-start gap-4 max-w-[600px]">
                 <!-- Desktop: Thumbnails on left -->
-                {% if product.images and product.images|length > 0 %}
+                {% if images and images|length > 1 %}
                 <div class="hidden lg:flex lg:flex-col gap-3" id="desktop-thumbnails">
-                    {% for img in product.images[:4] %}
-                    <div class="flex-shrink-0 aspect-square w-[112px] h-[112px] border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white" 
-                         style="min-width: 112px; min-height: 112px;"
-                         onclick="document.getElementById('main-product-image').src='{{ img }}'">
+                    {% for img in images[:4] %}
+                    <div class="flex-shrink-0 aspect-square w-[112px] h-[112px] border-2 {% if loop.index == 1 %}border-red-600{% else %}border-gray-200{% endif %} rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white" 
+                        style="min-width: 112px; min-height: 112px;"
+                        onclick="document.getElementById('main-product-image').src='{{ img }}'; 
+                                document.querySelectorAll('#desktop-thumbnails > div, #mobile-thumbnails > div').forEach(el => el.classList.remove('border-red-600')); 
+                                document.querySelectorAll('#desktop-thumbnails > div, #mobile-thumbnails > div').forEach(el => el.classList.add('border-gray-200')); 
+                                this.classList.remove('border-gray-200'); 
+                                this.classList.add('border-red-600');">
                         <img src="{{ img }}" alt="{{ product.product_name }} - Foto {{ loop.index }}" class="w-full h-full object-contain p-2" loading="lazy">
                     </div>
                     {% endfor %}
@@ -77,12 +89,16 @@
                     </div>
                     
                     <!-- Mobile: Thumbnails below -->
-                    {% if product.images and product.images|length > 0 %}
+                    {% if images and images|length > 1 %}
                     <div class="grid grid-cols-4 gap-2 w-full max-w-[90vw] lg:hidden" id="mobile-thumbnails">
-                        {% for img in product.images[:4] %}
-                        <div class="aspect-square border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white"
-                             style="min-height: 80px;"
-                             onclick="document.getElementById('main-product-image').src='{{ img }}'">
+                        {% for img in images[:4] %}
+                        <div class="aspect-square border-2 {% if loop.index == 1 %}border-red-600{% else %}border-gray-200{% endif %} rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white"
+                            style="min-height: 80px;"
+                            onclick="document.getElementById('main-product-image').src='{{ img }}'; 
+                                    document.querySelectorAll('#desktop-thumbnails > div, #mobile-thumbnails > div').forEach(el => el.classList.remove('border-red-600')); 
+                                    document.querySelectorAll('#desktop-thumbnails > div, #mobile-thumbnails > div').forEach(el => el.classList.add('border-gray-200')); 
+                                    this.classList.remove('border-gray-200'); 
+                                    this.classList.add('border-red-600');">
                             <img src="{{ img }}" class="w-full h-full object-contain p-1" loading="lazy">
                         </div>
                         {% endfor %}
@@ -156,12 +172,12 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {% for related in related_products %}
             <a href="/product/{{ related.product_id }}/{{ related.product_name|urlencode }}" 
-               class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow bg-white">
+            class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow bg-white">
                 <div class="aspect-square bg-white rounded-lg mb-3">
                     <img src="{{ related.main_image or '/static/uploads/default.png' }}" 
-                         class="w-full h-full object-contain">
+                        class="w-full h-full object-contain">
                 </div>
-                <h4 class="font-semibold text-black text-sm mb-2 line-clamp-2 md:line-clamp-1">{{ related.product_name }}</h4>
+                <h4 class="font-semibold text-black text-sm mb-2 line-clamp-2">{{ related.product_name }}</h4>
                 <p class="text-red-700 font-bold text-sm">{{ related.discount_price or related.price|round|int }} ALL</p>
             </a>
             {% endfor %}
