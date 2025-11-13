@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Markat e Makinave - Auto Adeal{% endblock %}
+
+{% block description %}Gjej pjese dhe aksesore per marken e makines tende: Volkswagen, BMW, Audi, Mercedes-Benz, Toyota, Ford dhe shume te tjera.{% endblock %}
+
+{% block keywords %}car brands, volkswagen, bmw, audi, mercedes, toyota, ford, auto parts{% endblock %}
+
+{% block canonical %}https://autoadeal.com/brands{% endblock %}
+
+{% block og_title %}Markat e Makinave - Auto Adeal{% endblock %}
+{% block og_description %}Gjej pjese per marken e makines tende{% endblock %}
+{% block og_url %}https://autoadeal.com/brands{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 md:px-6 py-8">
+    <h1 class="text-3xl font-bold text-black mb-8">Markat e Makinave</h1>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+        {% for brand in brands %}
+        <a href="/brand/{{ brand|urlencode }}" class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow text-center">
+            <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden">
+                <img src="/static/brands/{{ brand|lower|replace(' ', '-')|replace('ë', 'e') }}.png" 
+                     alt="{{ brand }}" 
+                     class="w-full h-full object-contain p-2"
+                     onerror="this.src='/static/brands/default.png'">
+            </div>
+            <h3 class="font-bold text-black text-sm">{{ brand }}</h3>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

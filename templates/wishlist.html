@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Lista e Deshirave - Auto Adeal{% endblock %}
+
+{% block description %}Ruaj produktet e tua te preferuara{% endblock %}
+
+{% block canonical %}https://autoadeal.com/wishlist{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 md:px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold text-black">Lista e dëshirave</h1>
+        <a href="/" class="text-red-600 hover:text-red-700">← Kthehu</a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="wishlist-grid">
+        <!-- Wishlist items will be loaded here -->
+    </div>
+</div>
+
+<script>
+function loadWishlistPage() {
+    const grid = document.getElementById('wishlist-grid');
+    grid.innerHTML = '';
+    
+    if (wishlistItems.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 mx-auto mb-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                <h2 class="text-2xl font-bold text-black mb-2">Lista e dëshirave është bosh</h2>
+                <p class="text-gray-600 mb-6">Ruaj produktet e tua të preferuara këtu!</p>
+                <a href="/" class="inline-block bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 transition-colors">
+                    Fillo Blerjet
+                </a>
+            </div>
+        `;
+        return;
+    }
+    
+    wishlistItems.forEach(item => {
+        const isInCart = cartItems.some(cartItem => cartItem.productId === item.productId);
+        
+        const card = document.createElement('div');
+        card.classList.add('bg-white', 'border', 'border-gray-200', 'rounded-xl', 
+                          'p-4', 'shadow-sm', 'hover:shadow-md', 'transition-shadow');
+        
+        card.innerHTML = `
+            <a href="/product/${item.productId}/${encodeURIComponent(item.productName)}" class="block">
+                <img src="${item.productImage}" alt="${item.productName}" class="w-full h-40 object-contain mb-4 rounded">
+                <h4 class="font-semibold text-black mb-2">${item.productName}</h4>
+                <p class="text-red-700 font-bold text-lg mb-4">${Math.round(item.productPrice)} ALL</p>
+            </a>
+            
+            <div class="flex space-x-2">
+                <button
+                    onclick="event.stopPropagation(); toggleWishlist(${item.productId}, '${item.productName.replace(/'/g, "\\'")}', ${item.productPrice}, '${item.productImage}')"
+                    class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors"
+                >
+                    Hiq
+                </button>
+                <button
+                    onclick="event.stopPropagation(); addToCart(${item.productId}, '${item.productName.replace(/'/g, "\\'")}', ${item.productPrice}, '${item.productImage}')"
+                    class="flex-1 ${isInCart ? 'bg-green-600' : 'bg-gray-600'} text-white py-2 rounded hover:bg-gray-700 transition-colors"
+                >
+                    ${isInCart ? '✓ Ne Shporte' : 'Shto ne Shporte'}
+                </button>
+            </div>
+        `;
+        
+        grid.appendChild(card);
+    });
+}
+
+// Load wishlist on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadWishlistFromStorage();
+    loadWishlistPage();
+});
+</script>
+{% endblock %}

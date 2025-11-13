@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.product_name }} - Auto Adeal{% endblock %}
+
+{% block description %}{{ product.description or product.product_name }}. Cmimi: {{ product.discount_price or product.price|round|int }} ALL. Dergesa ne Shqiperi dhe Kosove.{% endblock %}
+
+{% block keywords %}{{ product.product_name }}, {{ product.tags or 'auto parts' }}{% endblock %}
+
+{% block canonical %}https://autoadeal.com/product/{{ product.product_id }}/{{ product.product_name|urlencode }}{% endblock %}
+
+{% block og_title %}{{ product.product_name }} - Auto Adeal{% endblock %}
+{% block og_description %}{{ product.description or product.product_name }}{% endblock %}
+{% block og_image %}https://autoadeal.com{{ product.main_image or '/static/logo.png' }}{% endblock %}
+{% block og_url %}https://autoadeal.com/product/{{ product.product_id }}/{{ product.product_name|urlencode }}{% endblock %}
+
+{% block extra_head %}
+<!-- Product Schema -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": "{{ product.product_name }}",
+    "image": "https://autoadeal.com{{ product.main_image or '/static/logo.png' }}",
+    "description": "{{ product.description or product.product_name }}",
+    "sku": "PROD-{{ product.product_id }}",
+    "brand": {
+        "@type": "Brand",
+        "name": "Auto Adeal"
+    },
+    "offers": {
+        "@type": "Offer",
+        "url": "https://autoadeal.com/product/{{ product.product_id }}/{{ product.product_name|urlencode }}",
+        "priceCurrency": "ALL",
+        "price": "{{ product.discount_price or product.price }}",
+        "availability": "{% if product.sold_out %}https://schema.org/OutOfStock{% else %}https://schema.org/InStock{% endif %}",
+        "seller": {
+            "@type": "Organization",
+            "name": "Auto Adeal"
+        }
+    }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="bg-gray-50 py-3 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-6">
+    <div class="container mx-auto px-4 md:px-6">
+        <div class="flex items-center text-sm text-gray-600">
+            <a href="/" class="hover:text-red-600">Kryefaqja</a>
+            <span class="mx-2">›</span>
+            <a href="/subcategory/{{ product.subcategory.subcategory_id }}/{{ product.subcategory.subcategory_name|urlencode }}" class="hover:text-red-600">
+                {{ product.subcategory.subcategory_name }}
+            </a>
+            <span class="mx-2">›</span>
+            <span class="text-black font-medium">{{ product.product_name }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 md:px-6 py-8">
+    <!-- Mobile: Title First -->
+    <h1 class="text-xl font-bold text-black mb-4 lg:hidden">{{ product.product_name }}</h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
+        <!-- Left: Images -->
+        <div class="flex items-center justify-center">
+            <div class="flex flex-col lg:flex-row items-center lg:items-start gap-4 max-w-[600px]">
+                <!-- Desktop: Thumbnails on left -->
+                {% if product.images and product.images|length > 0 %}
+                <div class="hidden lg:flex lg:flex-col gap-3" id="desktop-thumbnails">
+                    {% for img in product.images[:4] %}
+                    <div class="flex-shrink-0 aspect-square w-[112px] h-[112px] border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white" 
+                         style="min-width: 112px; min-height: 112px;"
+                         onclick="document.getElementById('main-product-image').src='{{ img }}'">
+                        <img src="{{ img }}" alt="{{ product.product_name }} - Foto {{ loop.index }}" class="w-full h-full object-contain p-2" loading="lazy">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="flex flex-col items-center gap-4 w-full">
+                    <!-- Main image -->
+                    <div class="aspect-square w-full max-w-[90vw] lg:w-[484px] lg:h-[484px] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 p-4 relative" style="min-height: 350px;">
+                        <img id="main-product-image" src="{{ product.main_image or '/static/uploads/default.png' }}" alt="{{ product.product_name }}" class="w-full h-full object-contain {% if product.sold_out %}grayscale opacity-50{% endif %}" style="min-height: 300px;" loading="eager">
+                        {% if product.sold_out %}
+                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
+                            <span class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-lg shadow-lg">SOLD OUT</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Mobile: Thumbnails below -->
+                    {% if product.images and product.images|length > 0 %}
+                    <div class="grid grid-cols-4 gap-2 w-full max-w-[90vw] lg:hidden" id="mobile-thumbnails">
+                        {% for img in product.images[:4] %}
+                        <div class="aspect-square border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white"
+                             style="min-height: 80px;"
+                             onclick="document.getElementById('main-product-image').src='{{ img }}'">
+                            <img src="{{ img }}" class="w-full h-full object-contain p-1" loading="lazy">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Details -->
+        <div>
+            <h1 class="hidden lg:block text-3xl font-bold text-black mb-4">{{ product.product_name }}</h1>
+            
+            {% if product.discount_price and product.discount_price < product.price %}
+                <div class="flex items-center space-x-3 mb-6">
+                    <p class="text-red-700 font-bold text-3xl">{{ product.discount_price|round|int }} ALL</p>
+                    <p class="text-gray-500 line-through text-xl">{{ product.price|round|int }} ALL</p>
+                </div>
+            {% else %}
+                <p class="text-red-700 font-bold text-3xl mb-6">{{ product.price|round|int }} ALL</p>
+            {% endif %}
+
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-2 text-black">Pershkrimi</h3>
+                <p class="text-gray-700 leading-relaxed">{{ product.description or 'Nuk ka pershkrim te disponueshem.' }}</p>
+            </div>
+
+            {% if product.specs %}
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-3 text-black">Specifikimet</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    {% for key, value in product.specs.items() %}
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <p class="text-xs text-gray-600 mb-1">{{ key }}</p>
+                        <p class="text-sm font-semibold text-black">{{ value }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if product.sold_out %}
+            <div class="flex-1 bg-gray-400 text-white px-6 py-4 rounded-lg text-center font-bold text-lg cursor-not-allowed">
+                SOLD OUT - Not Available
+            </div>
+            {% else %}
+            <div class="flex space-x-4 mt-8">
+                <button onclick="toggleWishlist({{ product.product_id }}, '{{ product.product_name|replace("'", "\\'") }}', {{ product.price }}, '{{ product.main_image or '/static/uploads/default.png' }}')" 
+                        class="border-2 border-red-600 text-red-600 px-6 py-3 rounded-lg hover:bg-red-50 transition-colors flex items-center space-x-2 font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                    <span>Deshirat</span>
+                </button>
+                <button onclick="addToCart({{ product.product_id }}, '{{ product.product_name|replace("'", "\\'") }}', {{ product.discount_price or product.price }}, '{{ product.main_image or '/static/uploads/default.png' }}')" 
+                        class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                    </svg>
+                    <span>Shto ne Shporte</span>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products and related_products|length > 0 %}
+    <div class="mt-16">
+        <h3 class="text-2xl font-bold text-black mb-6">Produkte te Ngjashme</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {% for related in related_products %}
+            <a href="/product/{{ related.product_id }}/{{ related.product_name|urlencode }}" 
+               class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow bg-white">
+                <div class="aspect-square bg-white rounded-lg mb-3">
+                    <img src="{{ related.main_image or '/static/uploads/default.png' }}" 
+                         class="w-full h-full object-contain">
+                </div>
+                <h4 class="font-semibold text-black text-sm mb-2 line-clamp-2">{{ related.product_name }}</h4>
+                <p class="text-red-700 font-bold text-sm">{{ related.discount_price or related.price|round|int }} ALL</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

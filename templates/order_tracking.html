@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Porositë e Mia - Auto Adeal{% endblock %}
+
+{% block description %}Gjurmoni porositë tuaja dhe shihni historinë e dorëzimit{% endblock %}
+
+{% block canonical %}https://autoadeal.com/order-tracking{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 md:px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold text-black">Porositë e Mia</h1>
+        <a href="/" class="text-red-600 hover:text-red-700">← Kthehu</a>
+    </div>
+    
+    <div id="orders-container">
+        <!-- Orders will be loaded here -->
+    </div>
+    
+    <!-- Contact Section -->
+    <div class="mt-12 bg-gray-50 rounded-xl p-6 text-center">
+        <h3 class="text-xl font-bold text-black mb-3">Probleme me Porosinë?</h3>
+        <p class="text-gray-700 mb-4">Na kontaktoni në Whatsapp për ndihmë të menjëhershme</p>
+        <a href="https://wa.me/355685526714" target="_blank" 
+            class="inline-flex items-center bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+            </svg>
+            Kontakto në Whatsapp
+        </a>
+    </div>
+</div>
+
+<script>
+async function loadOrderTrackingPage() {
+    const container = document.getElementById('orders-container');
+    container.innerHTML = '<p class="text-center py-8 text-gray-500">Duke ngarkuar porositë...</p>';
+    
+    if (!currentUser || !currentUser.email) {
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 mx-auto mb-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <h2 class="text-2xl font-bold text-black mb-2">Duhet të hyni në llogari</h2>
+                <p class="text-gray-600 mb-6">Hyni për të parë porositë tuaja</p>
+                <button onclick="showLoginModal()" class="bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 transition-colors">
+                    Hyr në Llogari
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/user/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success || !data.orders || data.orders.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <h2 class="text-2xl font-bold text-black mb-2">Nuk ka porosi ende</h2>
+                    <p class="text-gray-600 mb-6">Bëni porosinë tuaj të parë!</p>
+                    <a href="/" class="inline-block bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 transition-colors">
+                        Fillo Blerjet
+                    </a>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        data.orders.forEach(order => {
+            const orderCard = createOrderTrackingCard(order);
+            container.appendChild(orderCard);
+        });
+        
+    } catch (error) {
+        console.error('Failed to load orders:', error);
+        container.innerHTML = '<p class="text-center py-8 text-red-600">Dështoi ngarkimi i porosive</p>';
+    }
+}
+
+function createOrderTrackingCard(order) {
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-xl shadow-md p-6 mb-6';
+    
+    const statusColors = {
+        'pending': 'bg-yellow-100 text-yellow-800',
+        'confirmed': 'bg-blue-100 text-blue-800',
+        'in_warehouse': 'bg-purple-100 text-purple-800',
+        'shipped': 'bg-indigo-100 text-indigo-800',
+        'out_for_delivery': 'bg-orange-100 text-orange-800',
+        'delivered': 'bg-green-100 text-green-800',
+        'failed_to_deliver': 'bg-red-100 text-red-800',
+        'cancelled': 'bg-gray-100 text-gray-800'
+    };
+    
+    const statusLabels = {
+        'pending': 'Në Pritje',
+        'confirmed': 'Konfirmuar',
+        'in_warehouse': 'Në Magazinë',
+        'shipped': 'Dërguar',
+        'out_for_delivery': 'Në Rrugë për Dorëzim',
+        'delivered': 'Dorëzuar',
+        'failed_to_deliver': 'Dështoi Dorëzimi',
+        'cancelled': 'Anuluar'
+    };
+    
+    let itemsHTML = '';
+    order.order_items.forEach(item => {
+        itemsHTML += `
+            <div class="flex items-center space-x-4 mb-3 pb-3 border-b last:border-b-0">
+                <img src="${item.image}" class="w-16 h-16 object-contain rounded" onerror="this.src='/static/uploads/default.png'">
+                <div class="flex-1">
+                    <p class="font-medium text-black text-sm">${item.name}</p>
+                    <p class="text-gray-600 text-sm">Sasia: ${item.quantity} × ${Math.round(item.price)} ALL</p>
+                </div>
+                <p class="font-bold text-black">${Math.round(item.price * item.quantity)} ALL</p>
+            </div>
+        `;
+    });
+    
+    let historyHTML = '';
+    if (order.status_history && order.status_history.length > 0) {
+        historyHTML = '<div class="mt-6 border-t pt-6"><h4 class="font-bold text-black mb-4">Historia e Porosisë</h4><div class="space-y-4">';
+        
+        order.status_history.forEach((history, index) => {
+            const isLast = index === order.status_history.length - 1;
+            historyHTML += `
+                <div class="flex items-start space-x-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-4 h-4 rounded-full ${isLast ? 'bg-red-600' : 'bg-gray-400'}"></div>
+                        ${!isLast ? '<div class="w-0.5 h-full bg-gray-300 my-1"></div>' : ''}
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-black">${statusLabels[history.status] || history.status}</p>
+                        <p class="text-sm text-gray-600">${history.created_at}</p>
+                        ${history.notes ? `<p class="text-sm text-gray-700 mt-1">${history.notes}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        historyHTML += '</div></div>';
+    }
+    
+    card.innerHTML = `
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="text-2xl font-bold text-black">Porosia #${order.order_id}</h3>
+                <p class="text-sm text-gray-600">${order.created_at}</p>
+            </div>
+            <span class="px-4 py-2 rounded-full text-sm font-semibold ${statusColors[order.status]}">${statusLabels[order.status]}</span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <h4 class="font-bold text-black mb-2">Të Dhënat e Dorëzimit</h4>
+                <p class="text-sm"><strong>Emri:</strong> ${order.customer_name}</p>
+                <p class="text-sm"><strong>Telefoni:</strong> ${order.customer_phone}</p>
+                <p class="text-sm"><strong>Adresa:</strong> ${order.customer_address}</p>
+                <p class="text-sm"><strong>Qyteti:</strong> ${order.customer_city}, ${order.customer_country}</p>
+            </div>
+            <div>
+                <h4 class="font-bold text-black mb-2">Përmbledhja e Pagesës</h4>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span>Nëntotali:</span>
+                        <span>${Math.round(order.total_amount - order.shipping_cost)} ALL</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Dërgesa:</span>
+                        <span>${Math.round(order.shipping_cost)} ALL</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+                        <span>Totali:</span>
+                        <span class="text-red-600">${Math.round(order.total_amount)} ALL</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <h4 class="font-bold text-black mb-3">Produktet</h4>
+            ${itemsHTML}
+        </div>
+        
+        ${historyHTML}
+    `;
+    
+    return card;
+}
+
+// Load orders on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadOrderTrackingPage();
+});
+</script>
+{% endblock %}

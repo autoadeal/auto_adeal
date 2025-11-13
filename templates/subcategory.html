@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{{ subcategory.subcategory_name }} - Auto Adeal{% endblock %}
+
+{% block description %}Shiko {{ products|length }} produkte ne kategorine {{ subcategory.subcategory_name }}. Cilesi e larte, cmime te arsyeshme, dergese e shpejte.{% endblock %}
+
+{% block keywords %}{{ subcategory.subcategory_name }}, auto parts, auto adeal, pjese makine{% endblock %}
+
+{% block canonical %}https://autoadeal.com/subcategory/{{ subcategory.subcategory_id }}/{{ subcategory.subcategory_name|urlencode }}{% endblock %}
+
+{% block og_title %}{{ subcategory.subcategory_name }} - Auto Adeal{% endblock %}
+{% block og_description %}Shiko {{ products|length }} produkte ne kategorine {{ subcategory.subcategory_name }}{% endblock %}
+{% block og_url %}https://autoadeal.com/subcategory/{{ subcategory.subcategory_id }}/{{ subcategory.subcategory_name|urlencode }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="bg-gray-50 py-3 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-6">
+    <div class="container mx-auto px-4 md:px-6">
+        <div class="flex items-center text-sm text-gray-600">
+            <a href="/" class="hover:text-red-600">Kryefaqja</a>
+            <span class="mx-2">›</span>
+            <span class="text-black font-medium">{{ subcategory.subcategory_name }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 md:px-6">
+    <h1 class="text-3xl font-bold text-black mb-4">{{ subcategory.subcategory_name }}</h1>
+    <p class="text-gray-600 mb-8">{{ products|length }} produkte</p>
+
+    {% if products|length == 0 %}
+    <div class="text-center py-12">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+        </svg>
+        <h2 class="text-2xl font-bold text-black mb-2">Nuk ka produkte aktualisht</h2>
+        <p class="text-gray-600 mb-6">Kthehu me vone ose shiko kategori te tjera</p>
+        <a href="/" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors">
+            Kthehu ne Kryefaqe
+        </a>
+    </div>
+    {% else %}
+    <!-- Products Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        {% for product in products %}
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow product-card">
+            <a href="/product/{{ product.product_id }}/{{ product.product_name|urlencode }}">
+                <div class="aspect-square bg-white rounded-lg overflow-hidden mb-3 relative">
+                    <img src="{{ product.main_image or '/static/uploads/default.png' }}" 
+                         alt="{{ product.product_name }}" 
+                         class="w-full h-full object-contain {% if product.sold_out %}grayscale opacity-60{% endif %}">
+                    {% if product.sold_out %}
+                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
+                        <span class="bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-xs md:text-sm shadow-lg">SOLD OUT</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <h3 class="font-semibold text-black text-sm mb-2 line-clamp-2 min-h-[40px] md:min-h-[24px]">{{ product.product_name }}</h3>
+                {% if product.discount_price and product.discount_price < product.price %}
+                    <div class="flex items-center justify-center space-x-2">
+                        <p class="text-red-700 font-bold text-base md:text-lg">{{ product.discount_price|round|int }} ALL</p>
+                        <p class="text-gray-500 line-through text-xs md:text-sm">{{ product.price|round|int }} ALL</p>
+                    </div>
+                {% else %}
+                    <p class="text-red-700 font-bold text-base md:text-lg text-center">{{ product.price|round|int }} ALL</p>
+                {% endif %}
+            </a>
+            
+            {% if not product.sold_out %}
+            <!-- Add to cart and wishlist buttons -->
+            <div class="flex gap-2 mt-3">
+                <button onclick="event.stopPropagation(); toggleWishlist({{ product.product_id }}, '{{ product.product_name|replace("'", "\\'") }}', {{ product.price }}, '{{ product.main_image or '/static/uploads/default.png' }}')"
+                        class="bg-gray-200 text-black py-2 px-2.5 rounded hover:bg-red-700 hover:text-white transition-colors flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </button>
+                
+                <button onclick="event.stopPropagation(); addToCart({{ product.product_id }}, '{{ product.product_name|replace("'", "\\'") }}', {{ product.discount_price or product.price }}, '{{ product.main_image or '/static/uploads/default.png' }}')"
+                        class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                    </svg>
+                    <span class="text-xs md:text-sm whitespace-nowrap">
+                        <span class="md:hidden">Shto</span>
+                        <span class="hidden md:inline">Shto ne Shporte</span>
+                    </span>
+                </button>
+            </div>
+            {% else %}
+            <div class="mt-3 bg-gray-100 py-3 rounded text-center">
+                <p class="text-gray-600 font-semibold text-sm">Sold Out</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}  
