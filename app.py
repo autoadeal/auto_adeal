@@ -189,7 +189,7 @@ class SiteSettings(db.Model):
 class Order(db.Model):
     __tablename__ = 'order'
     order_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=True)  # NEW
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=True)
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
     customer_email = db.Column(db.String(100), nullable=True)
@@ -198,11 +198,10 @@ class Order(db.Model):
     customer_country = db.Column(db.String(50), nullable=False)
     total_amount = db.Column(db.Float, nullable=False)
     shipping_cost = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(20), default='pending')  # pending, confirmed, in_warehouse, shipped, out_for_delivery, delivered, failed_to_deliver, cancelled
+    status = db.Column(db.String(20), default='pending')
     order_items = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     notes = db.Column(db.Text, nullable=True)
-    # Relationship to status history
     status_history = db.relationship('OrderStatusHistory', backref='order', cascade='all, delete-orphan', order_by='OrderStatusHistory.created_at')
 
 class OrderStatusHistory(db.Model):
@@ -260,50 +259,124 @@ def ping_google_sitemap():
         requests.get('http://www.google.com/ping?sitemap=https://autoadeal.com/sitemap.xml', timeout=5)
         print("✅ Pinged Google about sitemap update")
     except:
-        pass  # Don't fail if ping fails
-    
-def create_admin_notification_email(order, cart_items):
-    """Create admin notification email message"""
-    # ... (move all the HTML building code here)
-    return Message(
-        subject=f'🔔 New Order #{order.order_id} - Auto Adeal',
-        recipients=['autoadeal@gmail.com'],
-        html=html_content
-    )
+        pass
 
-def create_customer_confirmation_email(order, cart_items, customer_email):
-    """Create customer confirmation email message"""
-    # ... (move all the HTML building code here)
-    return Message(
-        subject=f'✅ Konfirmim Porosie #{order.order_id} - Auto Adeal',
-        recipients=[customer_email],
-        html=html_content
-    )
-
-# ---------------- ROUTES ----------------
-@app.route('/subcategory/<int:subcategory_id>')
-@app.route('/subcategory/<int:subcategory_id>/<path:name>')
-def redirect_to_subcategory(subcategory_id, name=None):
-    """Redirect /subcategory/1/name to /#subcategory/1/name"""
-    from urllib.parse import quote
-    if name:
-        return redirect(f'/#subcategory/{subcategory_id}/{quote(name)}')
-    return redirect(f'/#subcategory/{subcategory_id}')
-
-@app.route('/product/<int:product_id>')
-def redirect_to_product(product_id):
-    """Redirect /product/1 to /#product/1"""
-    return redirect(f'/#product/{product_id}')
-
-@app.route('/brand/<path:brand_name>')
-def redirect_to_brand(brand_name):
-    """Redirect /brand/BMW to /#brand/BMW"""
-    from urllib.parse import quote
-    return redirect(f'/#brand/{quote(brand_name)}')
-
+# ---------------- MAIN PAGE ROUTES ----------------
 @app.route('/')
 def home():
+    """Homepage"""
     return render_template('index.html')
+
+@app.route('/about')
+def about():
+    """About page"""
+    return render_template('about.html')
+
+@app.route('/contact')
+def contact():
+    """Contact page"""
+    return render_template('contact.html')
+
+@app.route('/cart')
+def cart():
+    """Cart page"""
+    return render_template('cart.html')
+
+@app.route('/wishlist')
+def wishlist():
+    """Wishlist page"""
+    return render_template('wishlist.html')
+
+@app.route('/checkout')
+def checkout():
+    """Checkout page"""
+    return render_template('checkout.html')
+
+@app.route('/special-offers')
+def special_offers():
+    """Special offers page"""
+    return render_template('special_offers.html')
+
+@app.route('/order-tracking')
+def order_tracking():
+    """Order tracking page"""
+    return render_template('order_tracking.html')
+
+@app.route('/privacy-policy')
+def privacy_policy():
+    """Privacy policy page"""
+    return render_template('privacy_policy.html')
+
+@app.route('/terms-conditions')
+def terms_conditions():
+    """Terms and conditions page"""
+    return render_template('terms_conditions.html')
+
+@app.route('/refund-policy')
+def refund_policy():
+    """Refund policy page"""
+    return render_template('refund_policy.html')
+
+@app.route('/brands')
+def brands_list():
+    """Brands list page"""
+    return render_template('brands_list.html')
+
+@app.route('/brand/<path:brand_name>')
+def brand_page(brand_name):
+    """Individual brand page"""
+    return render_template('brand.html')
+
+@app.route('/subcategory/<int:subcategory_id>')
+@app.route('/subcategory/<int:subcategory_id>/<path:name>')
+def subcategory_page(subcategory_id, name=None):
+    """Subcategory page"""
+    subcategory = Subcategory.query.get_or_404(subcategory_id)
+    return render_template('subcategory.html', subcategory=subcategory)
+
+@app.route('/product/<int:product_id>')
+@app.route('/product/<int:product_id>/<path:name>')
+def product_page(product_id, name=None):
+    """Product detail page"""
+    product = Product.query.get_or_404(product_id)
+    
+    # Format specs
+    specs = {}
+    for spec in product.specs:
+        specs[spec.spec_type.name] = spec.value
+    
+    # Parse images
+    images = []
+    if product.image_urls:
+        images = [url.strip() for url in product.image_urls.split(',') if url.strip()]
+    
+    # Get related products
+    related_products = Product.query.filter(
+        Product.subcategory_id == product.subcategory_id,
+        Product.product_id != product.product_id
+    ).limit(6).all()
+    
+    return render_template('product.html', 
+                         product=product, 
+                         specs=specs,
+                         images=images,
+                         related_products=related_products)
+
+@app.route('/search')
+def search_page():
+    """Search results page"""
+    return render_template('search_results.html')
+
+@app.route('/blog')
+def blog_page():
+    """Blog listing page"""
+    return render_template('blog.html')
+
+@app.route('/blog/<int:post_id>')
+@app.route('/blog/<int:post_id>/<path:slug>')
+def blog_post_page(post_id, slug=None):
+    """Individual blog post page"""
+    return render_template('blog_post.html')
 
 @app.route('/health')
 def health():
@@ -317,7 +390,7 @@ def health():
         'cpu_percent': process.cpu_percent()
     }
 
-#BLOG PAGE ROUTES
+# ---------------- BLOG API ROUTES ----------------
 @app.route('/api/blog/posts')
 def get_blog_posts():
     """Get all published blog posts"""
@@ -365,7 +438,6 @@ def admin_create_blog_post():
     try:
         data = request.json
         
-        # Generate slug from title
         slug = data['title'].lower().replace(' ', '-').replace('ë', 'e').replace('ç', 'c')
         
         post = BlogPost(
@@ -415,46 +487,17 @@ def admin_delete_blog_post(post_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 400
-    
+
 @app.route('/admin/blog')
 @require_admin
 def admin_blog():
     """Admin blog management page"""
     return render_template('admin_blog.html')
 
-@app.route('/admin/test-email')
-@require_admin
-def test_email():
-    """Test email configuration"""
-    if not MAIL_ENABLED:
-        return jsonify({'success': False, 'error': 'Email system is disabled'})
-    
-    try:
-        msg = Message(
-            subject='🧪 Test Email - Auto Adeal',
-            recipients=['autoadeal@gmail.com'],
-            body='This is a test email.'
-        )
-        mail.send(msg)
-        return jsonify({'success': True, 'message': 'Test email sent'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-    
-@app.route('/blog')
-def blog_page():
-    """Blog listing page"""
-    return render_template('blog.html')
-
-@app.route('/blog/<int:post_id>')
-def blog_post_page(post_id):
-    """Individual blog post page"""
-    return render_template('blog_post.html')
-    
-# ---------------- API ENDPOINTS ----------------
-
+# ---------------- PRODUCT API ENDPOINTS ----------------
 @app.route('/api/categories')
 def api_categories():
-    """Get all categories with subcategories (sorted by sort_order)"""
+    """Get all categories with subcategories"""
     categories = Category.query.all()
     output = []
     for cat in categories:
@@ -468,14 +511,14 @@ def api_categories():
                     "name": sub.subcategory_name,
                     "slug": sub.slug
                 }
-                for sub in cat.subcategories  # Already sorted by sort_order
+                for sub in cat.subcategories
             ]
         })
     return jsonify(output)
 
 @app.route('/api/subcategory/<int:sub_id>/specs')
 def api_subcategory_specs(sub_id):
-    """Get spec types for a subcategory (for dynamic filters)"""
+    """Get spec types for a subcategory"""
     sub = Subcategory.query.get_or_404(sub_id)
     out = []
     for st in sub.spec_types:
@@ -489,24 +532,21 @@ def api_subcategory_specs(sub_id):
 
 @app.route('/api/subcategory/<int:sub_id>/products')
 def api_subcategory_products(sub_id):
-    """Get all products in a subcategory, sold out items at end"""
-    Subcategory.query.get_or_404(sub_id)  # Verify subcategory exists
+    """Get all products in a subcategory"""
+    Subcategory.query.get_or_404(sub_id)
     
-    # Get in stock and sold out separately, filter out products without images
     in_stock = Product.query.filter_by(subcategory_id=sub_id, sold_out=False).filter(Product.main_image.isnot(None), Product.main_image != '').all()
     sold_out = Product.query.filter_by(subcategory_id=sub_id, sold_out=True).filter(Product.main_image.isnot(None), Product.main_image != '').all()
     
-    # Combine: in stock first, sold out at end
     products = in_stock + sold_out
     
     return jsonify([format_product(p) for p in products])
 
 @app.route('/api/product/<int:product_id>')
 def api_product_detail(product_id):
-    """Get detailed product info with related products"""
+    """Get detailed product info"""
     product = Product.query.get_or_404(product_id)
     
-    # Get related products (same subcategory, exclude current)
     related = Product.query.filter(
         Product.subcategory_id == product.subcategory_id,
         Product.product_id != product.product_id
@@ -527,7 +567,7 @@ def api_product_detail(product_id):
 
 @app.route('/api/products/specials')
 def api_special_products():
-    """Get products with discounts or marked as special"""
+    """Get products with discounts"""
     products = Product.query.filter(
         (Product.discount_price.isnot(None)) | (Product.is_special == True)
     ).all()
@@ -535,55 +575,39 @@ def api_special_products():
 
 @app.route('/api/products/popular')
 def api_popular_products():
-    """Get daily rotated featured products with weighted randomization"""
+    """Get daily rotated featured products"""
     import random
     from datetime import date
     
     today = date.today()
-    print(f"📅 Today's date: {today}")  # Debug
     
-    # Check if we have cached products for today
     cached = DailyFeatured.query.filter_by(featured_date=today).order_by(DailyFeatured.display_order).all()
-    print(f"💾 Cached products found: {len(cached)}")  # Debug
     
     if cached and len(cached) > 0:
-        # Return cached products
         product_ids = [c.product_id for c in cached]
         products = Product.query.filter(Product.product_id.in_(product_ids)).all()
         
-        # Sort by cached order
         products_dict = {p.product_id: p for p in products}
         ordered_products = [products_dict[pid] for pid in product_ids if pid in products_dict]
         
-        print(f"✓ Returning {len(ordered_products)} cached products")  # Debug
         return jsonify([format_product(p) for p in ordered_products])
     
-    # Generate new daily rotation
-    print("🔄 Generating new daily rotation...")  # Debug
     all_products = Product.query.all()
     
     if not all_products:
         return jsonify([])
     
-    # Categorize products
     popular_products = []
     recent_products = []
     older_products = []
     
-    # Get the highest product ID to determine what's recent
     max_id = max([p.product_id for p in all_products])
     recent_threshold = max_id - 30
     
-    print(f"📈 Total products: {len(all_products)}, Max ID: {max_id}, Recent threshold: {recent_threshold}")  # Debug
-    
-    # Filter out sold out products and products without images for home page
     all_products = [p for p in all_products if not p.sold_out and p.main_image]
 
     for product in all_products:
-        # Check if popular (has discount or is special)
         is_popular = product.is_special or (product.discount_price and product.discount_price < product.price)
-        
-        # Check if recent
         is_recent = product.product_id > recent_threshold
         
         if is_popular:
@@ -593,41 +617,26 @@ def api_popular_products():
         else:
             older_products.append(product)
     
-    print(f"📊 Popular: {len(popular_products)}, Recent: {len(recent_products)}, Older: {len(older_products)}")  # Debug
-    
-    # Weighted selection
     selected = []
     
-    # 50% popular (32 out of 64)
     random.shuffle(popular_products)
     selected.extend(popular_products[:32])
-    print(f"➕ Added {len(selected)} popular products")  # Debug
     
-    # 30% recent (19 out of 64)
     random.shuffle(recent_products)
     selected.extend(recent_products[:19])
-    print(f"➕ Added recent products, total: {len(selected)}")  # Debug
     
-    # 20% older (13 out of 64)
     random.shuffle(older_products)
     selected.extend(older_products[:13])
-    print(f"➕ Added older products, total: {len(selected)}")  # Debug
     
-    # If we don't have enough, fill with any remaining
     if len(selected) < 64:
         remaining = [p for p in all_products if p not in selected]
         random.shuffle(remaining)
         needed = 64 - len(selected)
         selected.extend(remaining[:needed])
-        print(f"➕ Filled remaining {needed} products, total: {len(selected)}")  # Debug
     
-    # Final shuffle and limit to 64
     random.shuffle(selected)
     selected = selected[:64]
     
-    print(f"🎲 Final selection: {len(selected)} products")  # Debug
-    
-    # Cache for today
     for idx, product in enumerate(selected):
         if product in popular_products:
             category = 'popular'
@@ -646,29 +655,25 @@ def api_popular_products():
     
     try:
         db.session.commit()
-        print("✓ Cached products saved to database")  # Debug
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Failed to cache products: {e}")  # Debug
     
     return jsonify([format_product(p) for p in selected])
 
 @app.route('/api/search')
 def api_search():
-    """Smart search with relevance scoring and synonym support"""
+    """Smart search with relevance scoring"""
     query = request.args.get('q', '').strip().lower()
     if not query:
         return jsonify([])
     
-    # Albanian stop words
     stop_words = {"per", "dhe", "ose", "te", "me", "nga", "ne", "si", "qe", "eshte", "nje", "i", "e", "a", "u"}
     
-    # Synonym map (Albanian automotive terms)
     synonyms = {
         'makine': ['makin', 'auto', 'veture', 'car'],
         'butona': ['buton', 'buttons', 'switch', 'celes', 'celsa'],
         'xhami': ['xhamash', 'xhamat', 'xhama', 'window'],
-        'veshje': ['mbulese', 'cover', 'mbrojtese', 'cover'],
+        'veshje': ['mbulese', 'cover', 'mbrojtese'],
         'timoni': ['timon', 'timona', 'timonash', 'steering wheel'],
         'leva': ['leve', 'shkop', 'kembe', 'gear', 'knob'],
         'marshi': ['marsha', 'kamjo', 'manual', 'marshat', 'marshash', 'shift', 'shifter'],
@@ -677,8 +682,8 @@ def api_search():
         'njesi': ['unit', 'komponent'],
         'ac': ['air conditioner', 'air', 'ajer', 'ftohes', 'ftohesi', 'ftohsi'],
         'vent': ['ventilator', 'kapak', 'plastike', 'plastik'],
-        'celsa': ['celsash', 'cels', 'celes', 'buton', 'butona', 'celsash'],
-        'celsash': ['celsa', 'cels', 'celes', 'buton', 'butona', 'celsash', 'key', 'keys'],
+        'celsa': ['celsash', 'cels', 'celes', 'buton', 'butona'],
+        'celsash': ['celsa', 'cels', 'celes', 'buton', 'butona', 'key', 'keys'],
         'varese': ['varse', 'keychain', 'holder'],
         'aksesore': ['aksesor', 'parts', 'accessories', 'pjese'],
         'pasqyre': ['pasqyrash', 'pasqyrat', 'pasqyr', 'mirror', 'mirrors'],
@@ -700,7 +705,6 @@ def api_search():
         'rezervuar': ['tank', 'depozite', 'depozita', 'depozit', 'mbajtese', 'reservoir'],
         'coolant': ['antifriz', 'antifreeze', 'anti', 'freeze', 'ftohes', 'ftohje', 'coolanti', 'kullant'],
         'xhamash': ['xhama', 'xhamat', 'xhamave', 'xhami', 'window', 'windshield'],
-        'veshje': ['mbulese', 'shtrese', 'shtres', 'mbrojtes', 'mbrojtese', 'coat', 'coating', 'cover'],
         'qeramike': ['qeramik', 'graphene', 'qeramika', 'ceramic'],
         'lecke': ['doreze', 'dorashk', 'mitt', 'glove', 'towel'],
         'aditive': ['additive', 'aditiv', 'shtues', 'riparues', 'fuqizues', 'pastrues', 'shtese'],
@@ -711,8 +715,6 @@ def api_search():
         'siguresa': ['fuse', 'sigures', 'sigurese'],
         'universale': ['universal', 'gjitha', 'all'],
         'halogjen': ['halogen', 'drita'],
-        'p21w': ['p21/5w', 'stopa'],
-        'ba15s': ['ba15d', 'bay15d', 'bau15s', 'baz15d'],
         'kruajtes': ['scraper', 'kruajts', 'kruarje', 'krruajtes', 'krruajts', 'krruarje'],
         'vinyl': ['leter', 'wrap', 'vinil', 'vinyli'],
         'vinyli': ['leter', 'wrap', 'vinil', 'vinyl'],
@@ -722,46 +724,36 @@ def api_search():
         'shkumeberes': ['shkume', 'shkum', 'shkumues', 'shkumator', 'beres', 'foam', 'cannon', 'shishe'],
     }
     
-    # Tokenize and clean query - remove stop words
     tokens = [w.strip() for w in query.split() if w.strip() and w.strip() not in stop_words]
     
     if not tokens:
         return jsonify([])
     
-    print(f"🔍 Search tokens after cleaning: {tokens}")  # Debug
-    
-    # Get all products
     all_products = Product.query.all()
     scored_products = []
     
     for product in all_products:
-        # Build searchable fields
         title_text = product.product_name.lower()
         desc_text = (product.description or '').lower()
         tags_text = (product.tags or '').lower()
         specs_text = ' '.join([spec.value.lower() for spec in product.specs])
         
-        # Combine all text for checking
         all_text = f"{title_text} {desc_text} {tags_text} {specs_text}"
         
-        # Check if ALL tokens match (AND logic)
         all_tokens_found = True
         score = 0
         
         for token in tokens:
             token_found = False
             
-            # Get synonyms for this token
             search_terms = [token]
             if token in synonyms:
                 search_terms = synonyms[token]
             
-            # Check if any synonym matches
             for term in search_terms:
                 if term in all_text:
                     token_found = True
                     
-                    # Add weighted scores based on where it's found
                     if term in title_text:
                         score += 10
                     if term in tags_text:
@@ -771,87 +763,48 @@ def api_search():
                     if term in desc_text:
                         score += 2
                     
-                    break  # Stop checking synonyms once one matches
+                    break
             
-            # If this token (or its synonyms) wasn't found, exclude this product
             if not token_found:
                 all_tokens_found = False
                 break
         
-        # Only include if ALL tokens were found
         if all_tokens_found and product.main_image:
-            # Bonus for exact phrase match
             if query in title_text:
                 score += 50
             
-            # Bonus for newer products
             score += product.product_id * 0.01
             
-            # Bonus for special offers
             if product.is_special or product.discount_price:
                 score += 5
             
             scored_products.append((score, product))
-            print(f"✓ Match: {product.product_name} (score: {score})")  # Debug
     
-    print(f"📊 Total matches: {len(scored_products)}")  # Debug
-    
-    # Sort by score (highest first)
     scored_products.sort(key=lambda x: x[0], reverse=True)
     
-    # Filter out products without images and return top 50
     products_with_images = [(score, p) for score, p in scored_products if p.main_image]
     
     return jsonify([format_product(p[1]) for p in products_with_images[:50]])
 
-# ---------------- IMAGE UPLOAD (Optional - for admin) ----------------
-@app.route('/api/upload-image', methods=['POST'])
-def upload_image():
-    """Upload product image"""
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-    
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        # Add timestamp to avoid conflicts
-        filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
-        # Return relative URL
-        return jsonify({'url': f'/static/uploads/{filename}'}), 200
-    
-    return jsonify({'error': 'Invalid file type'}), 400
-
 @app.route('/api/brands/<brand_name>/products')
 def api_brand_products(brand_name):
-    """Get all products for a specific brand - supports comma-separated brands"""
-    # First, get the spec_type for 'E pershtatshme per'
+    """Get all products for a specific brand"""
     brand_spec_type = SpecType.query.filter_by(name='E pershtatshme per').first()
     
     if not brand_spec_type:
         return jsonify([])
     
-    # Get all product specs with this type
     all_brand_specs = ProductSpec.query.filter_by(spectype_id=brand_spec_type.id).all()
     
-    # Filter products where brand appears in comma-separated list
     product_ids = []
     for spec in all_brand_specs:
         if spec.value:
-            # Split by comma and check each brand
             brands = [b.strip() for b in spec.value.split(',')]
             if brand_name in brands or any(brand_name.lower() == b.lower() for b in brands):
                 product_ids.append(spec.product_id)
     
-    # Remove duplicates
     product_ids = list(set(product_ids))
     
-    # Get products that have images
     products = Product.query.filter(
         Product.product_id.in_(product_ids),
         Product.main_image.isnot(None),
@@ -860,6 +813,7 @@ def api_brand_products(brand_name):
     
     return jsonify([format_product(p) for p in products])
 
+# ---------------- AUTH API ENDPOINTS ----------------
 @app.route('/api/auth/signup', methods=['POST'])
 def api_signup():
     """User registration"""
@@ -868,11 +822,9 @@ def api_signup():
     if not data or not data.get('email') or not data.get('password') or not data.get('name') or not data.get('surname'):
         return jsonify({'error': 'Missing required fields'}), 400
     
-    # Check if user exists
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'Email already registered'}), 400
     
-    # Create user
     user = User(
         email=data['email'],
         password_hash=generate_password_hash(data['password']),
@@ -906,7 +858,6 @@ def api_login():
     if not user or not check_password_hash(user.password_hash, data['password']):
         return jsonify({'error': 'Invalid email or password'}), 401
     
-    # Update last login
     user.last_login = datetime.utcnow()
     db.session.commit()
     
@@ -931,10 +882,8 @@ def api_forgot_password():
     user = User.query.filter_by(email=data['email']).first()
     
     if not user:
-        # Don't reveal if email exists
         return jsonify({'success': True, 'message': 'If email exists, reset link sent'}), 200
     
-    # Generate reset token
     token = secrets.token_urlsafe(32)
     expires_at = datetime.utcnow() + timedelta(hours=24)
     
@@ -947,12 +896,10 @@ def api_forgot_password():
     db.session.add(reset)
     db.session.commit()
     
-    # TODO: Send email with reset link
-    # For now, just return the token (in production, send via email)
     return jsonify({
         'success': True,
         'message': 'Reset link sent to email',
-        'token': token  # Remove this in production
+        'token': token
     }), 200
 
 @app.route('/api/auth/reset-password', methods=['POST'])
@@ -976,11 +923,184 @@ def api_reset_password():
     
     return jsonify({'success': True, 'message': 'Password reset successful'}), 200
 
-# ---------------- ADMIN PANEL ----------------
+# ---------------- ORDER API ENDPOINTS ----------------
+@app.route('/api/order', methods=['POST'])
+def create_order():
+    """Save customer order"""
+    try:
+        data = request.json
+        
+        if not data or not data.get('customer_name') or not data.get('customer_phone'):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        cart_items = data.get('cart_items', [])
+        subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
+        shipping_cost = data.get('shipping_cost', 0)
+        total = subtotal + shipping_cost
+        
+        user_id = None
+        customer_email = data.get('customer_email')
+        if customer_email:
+            user = User.query.filter_by(email=customer_email).first()
+            if user:
+                user_id = user.user_id
 
+        order = Order(
+            user_id=user_id,
+            customer_name=data['customer_name'],
+            customer_phone=data['customer_phone'],
+            customer_email=customer_email,
+            customer_address=data.get('customer_address', ''),
+            customer_city=data.get('customer_city', ''),
+            customer_country=data.get('customer_country', ''),
+            total_amount=total,
+            shipping_cost=shipping_cost,
+            order_items=json.dumps(cart_items),
+            status='pending'
+        )
+        
+        db.session.add(order)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'order_id': order.order_id,
+            'message': 'Order placed successfully'
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/user/orders', methods=['POST'])
+def get_user_orders():
+    """Get orders for a specific user by email"""
+    try:
+        data = request.json
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({'success': False, 'error': 'Email required'}), 400
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            return jsonify({'success': False, 'orders': []}), 200
+        
+        orders = Order.query.filter_by(user_id=user.user_id).order_by(Order.created_at.desc()).all()
+        
+        orders_list = []
+        for order in orders:
+            history = OrderStatusHistory.query.filter_by(order_id=order.order_id).order_by(OrderStatusHistory.created_at.asc()).all()
+            
+            orders_list.append({
+                'order_id': order.order_id,
+                'customer_name': order.customer_name,
+                'customer_phone': order.customer_phone,
+                'customer_address': order.customer_address,
+                'customer_city': order.customer_city,
+                'customer_country': order.customer_country,
+                'total_amount': order.total_amount,
+                'shipping_cost': order.shipping_cost,
+                'status': order.status,
+                'order_items': json.loads(order.order_items),
+                'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+                'notes': order.notes,
+                'status_history': [
+                    {
+                        'status': h.status,
+                        'notes': h.notes,
+                        'created_at': h.created_at.strftime('%Y-%m-%d %H:%M')
+                    } for h in history
+                ]
+            })
+        
+        return jsonify({'success': True, 'orders': orders_list}), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/orders', methods=['GET'])
+@require_admin
+def get_orders():
+    """Get all orders for admin"""
+    try:
+        status = request.args.get('status', None)
+        
+        if status:
+            orders = Order.query.filter_by(status=status).order_by(Order.created_at.desc()).all()
+        else:
+            orders = Order.query.order_by(Order.created_at.desc()).all()
+        
+        orders_list = []
+        for order in orders:
+            orders_list.append({
+                'order_id': order.order_id,
+                'customer_name': order.customer_name,
+                'customer_phone': order.customer_phone,
+                'customer_address': order.customer_address,
+                'customer_city': order.customer_city,
+                'customer_country': order.customer_country,
+                'total_amount': order.total_amount,
+                'shipping_cost': order.shipping_cost,
+                'status': order.status,
+                'order_items': json.loads(order.order_items),
+                'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+                'notes': order.notes
+            })
+        
+        return jsonify(orders_list), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/order/<int:order_id>/status', methods=['PUT'])
+@require_admin
+def update_order_status(order_id):
+    """Update order status"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        data = request.json
+        
+        if 'status' in data:
+            history = OrderStatusHistory(
+                order_id=order_id,
+                status=data['status'],
+                notes=data.get('notes')
+            )
+            db.session.add(history)
+            order.status = data['status']
+        
+        if 'notes' in data:
+            order.notes = data['notes']
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Order updated'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/order/<int:order_id>', methods=['DELETE'])
+@require_admin
+def delete_order(order_id):
+    """Delete an order"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        db.session.delete(order)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Order deleted'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+# ---------------- ADMIN PANEL ROUTES ----------------
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    from flask import session, request, redirect, url_for
+    from flask import session
     
     if request.method == 'POST':
         password = request.form.get('password')
@@ -1026,7 +1146,7 @@ def admin_login():
 
 @app.route('/admin/logout')
 def admin_logout():
-    from flask import session, redirect, url_for
+    from flask import session
     session.pop('admin_logged_in', None)
     return redirect(url_for('admin_login'))
 
@@ -1042,7 +1162,6 @@ def admin_products():
     """List all products"""
     products = Product.query.order_by(Product.product_id.desc()).all()
     
-    # Ensure products have subcategory relationship loaded
     for product in products:
         if not product.main_image:
             product.main_image = '/static/uploads/default.png'
@@ -1055,7 +1174,6 @@ def admin_add_product():
     """Add new product page"""
     categories = Category.query.all()
     
-    # Convert categories to JSON-serializable format
     categories_data = []
     for cat in categories:
         categories_data.append({
@@ -1079,7 +1197,6 @@ def admin_edit_product(product_id):
     product = Product.query.get_or_404(product_id)
     categories = Category.query.all()
     
-    # Convert categories to JSON-serializable format
     categories_data = []
     for cat in categories:
         categories_data.append({
@@ -1094,7 +1211,6 @@ def admin_edit_product(product_id):
             ]
         })
     
-    # Convert product to dict
     product_data = {
         'product_id': product.product_id,
         'product_name': product.product_name,
@@ -1122,6 +1238,39 @@ def admin_edit_product(product_id):
                          product=product_data,
                          is_edit=True)
 
+@app.route('/admin/orders')
+@require_admin
+def admin_orders():
+    """Admin orders page"""
+    return render_template('admin_orders.html')
+
+@app.route('/admin/settings')
+@require_admin
+def admin_settings():
+    """Site settings page"""
+    return render_template('admin_settings.html')
+
+# ---------------- ADMIN API ENDPOINTS ----------------
+@app.route('/api/upload-image', methods=['POST'])
+def upload_image():
+    """Upload product image"""
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        return jsonify({'url': f'/static/uploads/{filename}'}), 200
+    
+    return jsonify({'error': 'Invalid file type'}), 400
+
 @app.route('/api/admin/product', methods=['POST'])
 @require_admin
 def api_admin_create_product():
@@ -1129,7 +1278,6 @@ def api_admin_create_product():
     try:
         data = request.json
         
-        # Create product
         product = Product(
             product_name=data['name'],
             description=data.get('description'),
@@ -1144,12 +1292,11 @@ def api_admin_create_product():
         )
         
         db.session.add(product)
-        db.session.flush()  # Get the product_id
+        db.session.flush()
         
-        # Add specs
         if data.get('specs'):
             for spec_data in data['specs']:
-                if spec_data.get('value'):  # Only add if value exists
+                if spec_data.get('value'):
                     spec = ProductSpec(
                         product_id=product.product_id,
                         spectype_id=int(spec_data['spectype_id']),
@@ -1158,8 +1305,7 @@ def api_admin_create_product():
                     db.session.add(spec)
         
         db.session.commit()
-
-        ping_google_sitemap()  # Notify Google
+        ping_google_sitemap()
         
         return jsonify({
             'success': True,
@@ -1179,7 +1325,6 @@ def api_admin_update_product(product_id):
         product = Product.query.get_or_404(product_id)
         data = request.json
         
-        # Update basic fields
         product.product_name = data['name']
         product.description = data.get('description')
         product.price = float(data['price'])
@@ -1191,7 +1336,6 @@ def api_admin_update_product(product_id):
         product.image_urls = data.get('image_urls')
         product.tags = data.get('tags')
         
-        # Update specs - delete old ones and add new
         ProductSpec.query.filter_by(product_id=product_id).delete()
         
         if data.get('specs'):
@@ -1236,16 +1380,14 @@ def api_admin_delete_product(product_id):
 @app.route('/api/admin/subcategory/<int:subcategory_id>/specs')
 @require_admin
 def api_admin_subcategory_specs(subcategory_id):
-    """Get spec types for subcategory (for admin form)"""
+    """Get spec types for subcategory"""
     sub = Subcategory.query.get_or_404(subcategory_id)
     specs = []
     for st in sub.spec_types:
-        # Use predefined choices if spec name matches known types
         choices = []
         if st.choices:
             choices = st.choices.split(',')
         
-        # Override with predefined choices for known types
         if st.name == 'E pershtatshme per':
             choices = ['Volkswagen', 'BMW', 'Audi', 'Mercedes-Benz', 'Toyota', 'Ford', 
                       'Skoda', 'Porsche', 'SEAT', 'Opel', 'Fiat', 'Range Rover', 
@@ -1259,484 +1401,6 @@ def api_admin_subcategory_specs(subcategory_id):
             'choices': choices
         })
     return jsonify(specs)
-
-def send_order_notification_email(order, cart_items):
-    """Send email notification when new order is placed"""
-    if not MAIL_ENABLED or mail is None:
-        print("⚠️ Email system disabled - skipping notification")
-        return
-    try:
-        # Build order items HTML
-        items_html = ""
-        for item in cart_items:
-            items_html += f"""
-            <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{item['name']}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">{item['quantity']}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">{int(item['price'])} ALL</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">{int(item['price'] * item['quantity'])} ALL</td>
-            </tr>
-            """
-        
-        # Create email
-        msg = Message(
-            subject=f'🔔 New Order #{order.order_id} - Auto Adeal',
-            recipients=['autoadeal@gmail.com'],
-            html=f"""
-            <html>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-                        <div style="background-color: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-                            <h1 style="margin: 0;">New Order Received!</h1>
-                            <p style="margin: 10px 0 0 0; font-size: 18px;">Order #{order.order_id}</p>
-                        </div>
-                        
-                        <div style="background-color: white; padding: 20px; border-radius: 0 0 10px 10px;">
-                            <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px;">Customer Information</h2>
-                            <table style="width: 100%; margin-bottom: 20px;">
-                                <tr>
-                                    <td style="padding: 8px 0;"><strong>Name:</strong></td>
-                                    <td style="padding: 8px 0;">{order.customer_name}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0;"><strong>Phone:</strong></td>
-                                    <td style="padding: 8px 0;">{order.customer_phone}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0;"><strong>Address:</strong></td>
-                                    <td style="padding: 8px 0;">{order.customer_address if hasattr(order, 'customer_address') else ''}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0;"><strong>City:</strong></td>
-                                    <td style="padding: 8px 0;">{order.customer_city}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0;"><strong>Country:</strong></td>
-                                    <td style="padding: 8px 0;">{order.customer_country}</td>
-                                </tr>
-                            </table>
-                            
-                            <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px;">Order Details</h2>
-                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                                <thead>
-                                    <tr style="background-color: #f3f4f6;">
-                                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Product</th>
-                                        <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Qty</th>
-                                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Price</th>
-                                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {items_html}
-                                </tbody>
-                            </table>
-                            
-                            <div style="text-align: right; font-size: 16px;">
-                                <p style="margin: 10px 0;"><strong>Shipping:</strong> {int(order.shipping_cost)} ALL</p>
-                                <p style="margin: 10px 0; font-size: 20px; color: #dc2626;"><strong>TOTAL:</strong> {int(order.total_amount)} ALL</p>
-                            </div>
-                            
-                            <div style="margin-top: 30px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
-                                <p style="margin: 0; font-size: 14px;">
-                                    <strong>⚡ Action Required:</strong> Contact the customer to confirm the order and arrange delivery.
-                                </p>
-                            </div>
-                            
-                            <div style="margin-top: 20px; text-align: center;">
-                                <a href="https://autoadeal.com/admin/orders" style="display: inline-block; background-color: #dc2626; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                                    View in Admin Panel
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 12px;">
-                            <p>Auto Adeal - Aksesore dhe Pjese per Makina</p>
-                            <p>Order placed on {order.created_at.strftime('%d/%m/%Y at %H:%M')}</p>
-                        </div>
-                    </div>
-                </body>
-            </html>
-            """
-        )
-        
-        mail.send(msg)
-        print(f"✅ Order notification email sent for order #{order.order_id}")
-        
-    except Exception as e:
-        print(f"❌ Failed to send email: {e}")
-        raise
-
-
-def send_customer_confirmation_email(order, cart_items, customer_email):
-    """Send confirmation email to customer"""
-    if not MAIL_ENABLED or mail is None:
-        print("⚠️ Email system disabled - skipping notification")
-        return
-    
-    try:
-        # Build order items HTML
-        items_html = ""
-        for item in cart_items:
-            items_html += f"""
-            <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{item['name']}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">{item['quantity']}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">{int(item['price'] * item['quantity'])} ALL</td>
-            </tr>
-            """
-        
-        msg = Message(
-            subject=f'✅ Konfirmim Porosie #{order.order_id} - Auto Adeal',
-            recipients=[customer_email],
-            html=f"""
-            <html>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-                        <div style="background-color: #dc2626; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                            <h1 style="margin: 0; font-size: 28px;">Faleminderit për Porosinë!</h1>
-                            <p style="margin: 15px 0 0 0; font-size: 18px;">Porosia Juaj #${order.order_id}</p>
-                        </div>
-                        
-                        <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px;">
-                            <div style="background-color: #dcfce7; border-left: 4px solid #16a34a; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
-                                <p style="margin: 0; color: #166534; font-weight: bold;">✅ Porosia juaj u pranua me sukses!</p>
-                                <p style="margin: 5px 0 0 0; color: #166534; font-size: 14px;">Do t'ju kontaktojmë së shpejti për konfirmim.</p>
-                            </div>
-                            
-                            <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 20px;">Detajet e Dërgesës</h2>
-                            <table style="width: 100%; margin-bottom: 25px;">
-                                <tr>
-                                    <td style="padding: 8px 0; color: #666;">Emri:</td>
-                                    <td style="padding: 8px 0; font-weight: bold;">{order.customer_name}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0; color: #666;">Telefoni:</td>
-                                    <td style="padding: 8px 0; font-weight: bold;">{order.customer_phone}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0; color: #666;">Adresa:</td>
-                                    <td style="padding: 8px 0; font-weight: bold;">{order.customer_address if hasattr(order, 'customer_address') else ''}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0; color: #666;">Qyteti:</td>
-                                    <td style="padding: 8px 0; font-weight: bold;">{order.customer_city}, {order.customer_country}</td>
-                                </tr>
-                            </table>
-                            
-                            <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 20px;">Produktet e Porositura</h2>
-                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
-                                <thead>
-                                    <tr style="background-color: #f3f4f6;">
-                                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Produkti</th>
-                                        <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Sasia</th>
-                                        <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Çmimi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {items_html}
-                                </tbody>
-                            </table>
-                            
-                            <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
-                                    <span>Nëntotali:</span>
-                                    <span>{int(order.total_amount - order.shipping_cost)} ALL</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 16px;">
-                                    <span>Dërgesa:</span>
-                                    <span>{int(order.shipping_cost)} ALL</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; font-size: 22px; font-weight: bold; color: #dc2626; padding-top: 15px; border-top: 2px solid #ddd;">
-                                    <span>TOTALI:</span>
-                                    <span>{int(order.total_amount)} ALL</span>
-                                </div>
-                            </div>
-                            
-                            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
-                                <p style="margin: 0; font-size: 14px; color: #92400e;">
-                                    <strong>💳 Pagesa në Dorëzim</strong><br>
-                                    Do të paguani kur të merrni produktet. Asnjë pagesë paraprak nuk kërkohet.
-                                </p>
-                            </div>
-                            
-                            <h3 style="color: #1f2937; margin-bottom: 15px;">Çfarë Ndodh Tani?</h3>
-                            <ol style="color: #4b5563; line-height: 1.8; padding-left: 20px;">
-                                <li>Do t'ju kontaktojmë brenda 24 orëve për të konfirmuar porosinë.</li>
-                                <li>Do të përgatisim produktet tuaja për dërgim.</li>
-                                <li>Do t'ju njoftojmë kur porosia të jetë në rrugë.</li>
-                                <li>Produktet do t'ju dorëzohen në adresën tuaj.</li>
-                            </ol>
-                            
-                            <div style="text-align: center; margin-top: 30px;">
-                                <p style="color: #666; margin-bottom: 15px;">Keni pyetje? Na kontaktoni:</p>
-                                <p style="margin: 5px 0;">📞 <a href="tel:+355685526714" style="color: #dc2626; text-decoration: none;">+355 68 552 6714</a></p>
-                                <p style="margin: 5px 0;">📧 <a href="mailto:autoadeal@gmail.com" style="color: #dc2626; text-decoration: none;">autoadeal@gmail.com</a></p>
-                                <p style="margin: 5px 0;">📱 <a href="https://www.instagram.com/autoadeal" style="color: #dc2626; text-decoration: none;">@autoadeal</a></p>
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 12px;">
-                            <p style="margin: 5px 0;">Auto Adeal - Aksesore dhe Pjesë për Makina</p>
-                            <p style="margin: 5px 0;">Sarandë, Shqipëri</p>
-                            <p style="margin: 5px 0;">Porosia u krye më {order.created_at.strftime('%d/%m/%Y në %H:%M')}</p>
-                        </div>
-                    </div>
-                </body>
-            </html>
-            """
-        )
-        
-        mail.send(msg)
-        print(f"✅ Customer confirmation email sent for order #{order.order_id}")
-        
-    except Exception as e:
-        print(f"❌ Failed to send customer email: {e}")
-
-@app.route('/api/order', methods=['POST'])
-def create_order():
-    """Save customer order"""
-    try:
-        data = request.json
-        
-        if not data or not data.get('customer_name') or not data.get('customer_phone'):
-            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
-        
-        # Calculate totals
-        cart_items = data.get('cart_items', [])
-        subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
-        shipping_cost = data.get('shipping_cost', 0)
-        total = subtotal + shipping_cost
-        
-        # Get user_id if email provided
-        user_id = None
-        customer_email = data.get('customer_email')
-        if customer_email:
-            user = User.query.filter_by(email=customer_email).first()
-            if user:
-                user_id = user.user_id
-
-        # Create order
-        order = Order(
-            user_id=user_id,
-            customer_name=data['customer_name'],
-            customer_phone=data['customer_phone'],
-            customer_email=customer_email,
-            customer_address=data.get('customer_address', ''),
-            customer_city=data.get('customer_city', ''),
-            customer_country=data.get('customer_country', ''),
-            total_amount=total,
-            shipping_cost=shipping_cost,
-            order_items=json.dumps(cart_items),
-            status='pending'
-        )
-        
-        db.session.add(order)
-        db.session.commit()
-        
-        print(f"✅ Order #{order.order_id} created successfully")
-        
-        # Send emails asynchronously (non-blocking)
-        if MAIL_ENABLED and mail:
-            try:
-                # Create email messages
-                admin_msg = create_admin_notification_email(order, cart_items)
-                
-                # Send in background thread
-                Thread(target=send_async_email, args=(app, admin_msg)).start()
-                
-                if customer_email:
-                    customer_msg = create_customer_confirmation_email(order, cart_items, customer_email)
-                    Thread(target=send_async_email, args=(app, customer_msg)).start()
-                
-                print("📧 Emails queued for sending")
-            except Exception as e:
-                print(f"⚠️ Email queueing failed: {e}")
-        
-        return jsonify({
-            'success': True,
-            'order_id': order.order_id,
-            'message': 'Order placed successfully'
-        }), 201
-        
-    except Exception as e:
-        db.session.rollback()
-        print(f"❌ Order creation error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 400
-    
-@app.route('/api/user/orders', methods=['POST'])
-def get_user_orders():
-    """Get orders for a specific user by email"""
-    try:
-        data = request.json
-        email = data.get('email')
-        
-        if not email:
-            return jsonify({'success': False, 'error': 'Email required'}), 400
-        
-        # Get user
-        user = User.query.filter_by(email=email).first()
-        
-        if not user:
-            return jsonify({'success': False, 'orders': []}), 200
-        
-        # Get all orders for this user
-        orders = Order.query.filter_by(user_id=user.user_id).order_by(Order.created_at.desc()).all()
-        
-        orders_list = []
-        for order in orders:
-            # Get status history
-            history = OrderStatusHistory.query.filter_by(order_id=order.order_id).order_by(OrderStatusHistory.created_at.asc()).all()
-            
-            orders_list.append({
-                'order_id': order.order_id,
-                'customer_name': order.customer_name,
-                'customer_phone': order.customer_phone,
-                'customer_address': order.customer_address,
-                'customer_city': order.customer_city,
-                'customer_country': order.customer_country,
-                'total_amount': order.total_amount,
-                'shipping_cost': order.shipping_cost,
-                'status': order.status,
-                'order_items': json.loads(order.order_items),
-                'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
-                'notes': order.notes,
-                'status_history': [
-                    {
-                        'status': h.status,
-                        'notes': h.notes,
-                        'created_at': h.created_at.strftime('%Y-%m-%d %H:%M')
-                    } for h in history
-                ]
-            })
-        
-        return jsonify({'success': True, 'orders': orders_list}), 200
-        
-    except Exception as e:
-        print(f"❌ Get user orders error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 400
-
-@app.route('/api/admin/orders', methods=['GET'])
-@require_admin
-def get_orders():
-    """Get all orders for admin"""
-    try:
-        status = request.args.get('status', None)
-        
-        if status:
-            orders = Order.query.filter_by(status=status).order_by(Order.created_at.desc()).all()
-        else:
-            orders = Order.query.order_by(Order.created_at.desc()).all()
-        
-        orders_list = []
-        for order in orders:
-            orders_list.append({
-                'order_id': order.order_id,
-                'customer_name': order.customer_name,
-                'customer_phone': order.customer_phone,
-                'customer_address': order.customer_address,
-                'customer_city': order.customer_city,
-                'customer_country': order.customer_country,
-                'total_amount': order.total_amount,
-                'shipping_cost': order.shipping_cost,
-                'status': order.status,
-                'order_items': json.loads(order.order_items),
-                'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
-                'notes': order.notes
-            })
-        
-        return jsonify(orders_list), 200
-        
-    except Exception as e:
-        print(f"❌ Get orders error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 400
-
-@app.route('/api/admin/order/<int:order_id>/status', methods=['PUT'])
-@require_admin
-def update_order_status(order_id):
-    """Update order status"""
-    try:
-        order = Order.query.get_or_404(order_id)
-        data = request.json
-        
-        # Create status history entry
-        if 'status' in data:
-            history = OrderStatusHistory(
-                order_id=order_id,
-                status=data['status'],
-                notes=data.get('notes')
-            )
-            db.session.add(history)
-            order.status = data['status']
-        
-        if 'notes' in data:
-            order.notes = data['notes']
-        
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Order updated'}), 200
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 400
-
-@app.route('/api/admin/order/<int:order_id>', methods=['DELETE'])
-@require_admin
-def delete_order(order_id):
-    """Delete an order"""
-    try:
-        order = Order.query.get_or_404(order_id)
-        db.session.delete(order)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Order deleted'}), 200
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 400
-
-@app.route('/api/track-view', methods=['POST'])
-def track_product_view():
-    """Track product views for relevance learning"""
-    data = request.json
-    if not data or not data.get('product_id'):
-        return jsonify({'success': False}), 400
-    
-    view = ProductView(
-        product_id=data['product_id'],
-        search_query=data.get('search_query')
-    )
-    
-    db.session.add(view)
-    db.session.commit()
-    
-    return jsonify({'success': True}), 200
-
-#Cleanup task to remove old cached entries
-@app.route('/api/admin/cleanup-cache', methods=['POST'])
-def cleanup_old_cache():
-    """Remove cached products older than 7 days"""
-    from datetime import date, timedelta
-    
-    seven_days_ago = date.today() - timedelta(days=7)
-    DailyFeatured.query.filter(DailyFeatured.featured_date < seven_days_ago).delete()
-    db.session.commit()
-    
-    return jsonify({'success': True, 'message': 'Old cache cleaned up'})
-
-# Cleanup old cache on startup
-def cleanup_on_startup():
-    from datetime import date, timedelta
-    with app.app_context():
-        seven_days_ago = date.today() - timedelta(days=7)
-        try:
-            DailyFeatured.query.filter(DailyFeatured.featured_date < seven_days_ago).delete()
-            db.session.commit()
-            print("✓ Cleaned up old daily featured cache")
-        except:
-            db.session.rollback()
-
-# Run cleanup
-cleanup_on_startup()
 
 @app.route('/api/admin/product/<int:product_id>/toggle-stock', methods=['POST'])
 @require_admin
@@ -1773,7 +1437,7 @@ def clear_sold_out_products():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 400
-    
+
 @app.route('/api/settings')
 def get_settings():
     """Get site settings"""
@@ -1800,12 +1464,54 @@ def update_settings():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 400
-    
-@app.route('/admin/settings')
-def admin_settings():
-    """Site settings page"""
-    return render_template('admin_settings.html')
 
+@app.route('/api/admin/cleanup-cache', methods=['POST'])
+def cleanup_old_cache():
+    """Remove cached products older than 7 days"""
+    from datetime import date, timedelta
+    
+    seven_days_ago = date.today() - timedelta(days=7)
+    DailyFeatured.query.filter(DailyFeatured.featured_date < seven_days_ago).delete()
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Old cache cleaned up'})
+
+@app.route('/api/track-view', methods=['POST'])
+def track_product_view():
+    """Track product views for relevance learning"""
+    data = request.json
+    if not data or not data.get('product_id'):
+        return jsonify({'success': False}), 400
+    
+    view = ProductView(
+        product_id=data['product_id'],
+        search_query=data.get('search_query')
+    )
+    
+    db.session.add(view)
+    db.session.commit()
+    
+    return jsonify({'success': True}), 200
+
+@app.route('/admin/test-email')
+@require_admin
+def test_email():
+    """Test email configuration"""
+    if not MAIL_ENABLED:
+        return jsonify({'success': False, 'error': 'Email system is disabled'})
+    
+    try:
+        msg = Message(
+            subject='🧪 Test Email - Auto Adeal',
+            recipients=['autoadeal@gmail.com'],
+            body='This is a test email.'
+        )
+        mail.send(msg)
+        return jsonify({'success': True, 'message': 'Test email sent'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# ---------------- SEO ROUTES ----------------
 @app.route('/sitemap.xml')
 def sitemap():
     """Generate dynamic sitemap for SEO"""
@@ -1813,7 +1519,6 @@ def sitemap():
     
     pages = []
     
-    # Homepage
     pages.append({
         'loc': 'https://autoadeal.com/',
         'lastmod': datetime.now().strftime('%Y-%m-%d'),
@@ -1821,11 +1526,12 @@ def sitemap():
         'priority': '1.0'
     })
     
-    # Static pages
     static_pages = [
-        ('/#special-offers', '0.9', 'daily'),
-        ('/#brands', '0.8', 'weekly'),
-        ('/#contact', '0.7', 'monthly'),
+        ('/special-offers', '0.9', 'daily'),
+        ('/brands', '0.8', 'weekly'),
+        ('/contact', '0.7', 'monthly'),
+        ('/about', '0.7', 'monthly'),
+        ('/blog', '0.8', 'weekly'),
     ]
     
     for url, priority, freq in static_pages:
@@ -1836,8 +1542,6 @@ def sitemap():
             'priority': priority
         })
     
-    # All subcategories
-    from sqlalchemy import distinct
     subcategories = Subcategory.query.all()
     for sub in subcategories:
         pages.append({
@@ -1847,7 +1551,6 @@ def sitemap():
             'priority': '0.8'
         })
 
-    # All products
     products = Product.query.filter(Product.main_image.isnot(None)).all()
     for product in products:
         pages.append({
@@ -1857,7 +1560,6 @@ def sitemap():
             'priority': '0.8'
         })
     
-    # Generate XML
     sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     
@@ -1874,12 +1576,6 @@ def sitemap():
     response = make_response(sitemap_xml)
     response.headers["Content-Type"] = "application/xml"
     return response
-
-@app.route('/admin/orders')
-@require_admin
-def admin_orders():
-    """Admin orders page"""
-    return render_template('admin_orders.html')
 
 @app.route('/robots.txt')
 def robots():
@@ -1898,6 +1594,21 @@ Sitemap: https://autoadeal.com/sitemap.xml
     response.headers["Content-Type"] = "text/plain"
     return response
 
+# ---------------- CLEANUP ON STARTUP ----------------
+def cleanup_on_startup():
+    from datetime import date, timedelta
+    with app.app_context():
+        seven_days_ago = date.today() - timedelta(days=7)
+        try:
+            DailyFeatured.query.filter(DailyFeatured.featured_date < seven_days_ago).delete()
+            db.session.commit()
+            print("✓ Cleaned up old daily featured cache")
+        except:
+            db.session.rollback()
+
+cleanup_on_startup()
+
+# ---------------- RUN APP ----------------
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     with app.app_context():
