@@ -55,7 +55,7 @@
                     </div>
                     {% endif %}
                 </div>
-                <h3 class="font-semibold text-black text-sm mb-2 line-clamp-2 min-h-[40px] md:min-h-[24px]">{{ product.product_name }}</h3>
+                <h3 class="font-semibold text-black text-sm mb-2 line-clamp-2 md:line-clamp-1 min-h-[40px] md:min-h-[24px]">{{ product.product_name }}</h3>
                 {% if product.discount_price and product.discount_price < product.price %}
                     <div class="flex items-center justify-center space-x-2">
                         <p class="text-red-700 font-bold text-base md:text-lg">{{ product.discount_price|round|int }} ALL</p>

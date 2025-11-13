@@ -43,20 +43,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Breadcrumbs (paths) comented out --> <!--
-<div class="bg-gray-50 py-3 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-6">
-    <div class="container mx-auto px-4 md:px-6">
-        <div class="flex items-center text-sm text-gray-600">
-            <a href="/" class="hover:text-red-600">Kryefaqja</a>
-            <span class="mx-2">›</span>
-            <a href="/subcategory/{{ product.subcategory.subcategory_id }}/{{ product.subcategory.subcategory_name|urlencode }}" class="hover:text-red-600">
-                {{ product.subcategory.subcategory_name }}
-            </a>
-            <span class="mx-2">›</span>
-            <span class="text-black font-medium">{{ product.product_name }}</span>
-        </div>
-    </div>
-</div> -->
 
 <div class="container mx-auto px-4 md:px-6 py-8">
     <!-- Mobile: Title First -->
@@ -175,7 +161,7 @@
                     <img src="{{ related.main_image or '/static/uploads/default.png' }}" 
                          class="w-full h-full object-contain">
                 </div>
-                <h4 class="font-semibold text-black text-sm mb-2 line-clamp-2">{{ related.product_name }}</h4>
+                <h4 class="font-semibold text-black text-sm mb-2 line-clamp-2 md:line-clamp-1">{{ related.product_name }}</h4>
                 <p class="text-red-700 font-bold text-sm">{{ related.discount_price or related.price|round|int }} ALL</p>
             </a>
             {% endfor %}

@@ -12,8 +12,47 @@
     <!-- Products Section -->
     <div id="products-section" class="w-full">
         <h3 id="products-title" class="text-xl md:text-2xl font-bold mb-4 text-black px-3 md:px-6 pt-4 md:pt-6">Të Fundit</h3>
-        <div id="products-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6 px-2 md:px-6 pb-4 md:pb-6">
-            <!-- Products will appear here -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6 px-2 md:px-6 pb-4 md:pb-6">
+            {% for product in products %}
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow product-card">
+                <a href="/product/{{ product.product_id }}/{{ product.product_name|urlencode }}">
+                    <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden relative">
+                        <img src="{{ product.main_image or '/static/uploads/default.png' }}" alt="{{ product.product_name }}" class="w-full h-full object-contain p-2" loading="lazy">
+                    </div>
+                    <h4 class="font-semibold text-black mb-2 text-center text-sm md:text-base min-h-[40px] md:min-h-[24px] line-clamp-2 md:line-clamp-1">{{ product.product_name }}</h4>
+                    <div class="mt-auto">
+                        {% if product.discount_price and product.discount_price < product.price %}
+                            <div class="flex items-center justify-center space-x-2">
+                                <p class="text-red-700 font-bold text-base md:text-lg">{{ product.discount_price|round|int }} ALL</p>
+                                <p class="text-xs md:text-sm text-gray-500 line-through">{{ product.price|round|int }} ALL</p>
+                            </div>
+                        {% else %}
+                            <p class="text-red-700 font-bold text-base md:text-lg text-center">{{ product.price|round|int }} ALL</p>
+                        {% endif %}
+                    </div>
+                </a>
+                
+                <div class="flex gap-2 mt-3">
+                    <button onclick="event.stopPropagation(); toggleWishlist({{ product.product_id }}, '{{ product.product_name|replace("'", "\\'") }}', {{ product.price }}, '{{ product.main_image or '/static/uploads/default.png' }}')"
+                            class="bg-gray-200 text-black py-2 px-2.5 rounded hover:bg-red-700 hover:text-white transition-colors flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </button>
+                    
+                    <button onclick="event.stopPropagation(); addToCart({{ product.product_id }}, '{{ product.product_name|replace("'", "\\'") }}', {{ product.discount_price or product.price }}, '{{ product.main_image or '/static/uploads/default.png' }}')"
+                            class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                        </svg>
+                        <span class="text-xs md:text-sm whitespace-nowrap">
+                            <span class="md:hidden">Shto</span>
+                            <span class="hidden md:inline">Shto ne Shporte</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -53,109 +92,8 @@ function handleBannerClick() {
     }
 }
 
-async function loadPopularProducts() {
-    try {
-        const response = await fetch('/api/products/popular');
-        const products = await response.json();
-        
-        renderProducts(products);
-    } catch (error) {
-        console.error('Failed to load popular products:', error);
-    }
-}
-
-function renderProducts(products) {
-    const container = document.getElementById('products-container');
-    container.innerHTML = '';
-    
-    if (products.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 col-span-full text-center">Nuk u gjeten produkte.</p>';
-        return;
-    }
-    
-    products.forEach(product => {
-        const card = createProductCard(product);
-        container.appendChild(card);
-    });
-}
-
-function createProductCard(product) {
-    const card = document.createElement('div');
-    card.classList.add('bg-white', 'border', 'border-gray-200', 'rounded-xl', 
-                       'p-4', 'shadow-sm', 'hover:shadow-md', 'transition-shadow', 
-                       'cursor-pointer', 'product-card');
-    
-    const productId = product.product_id;
-    const productName = product.product_name.replace(/'/g, "\\'");
-    const productPrice = product.price;
-    const productDiscountPrice = product.discount_price || product.price;
-    const imageURL = product.main_image || '/static/uploads/default.png';
-    const isSoldOut = product.sold_out || false;
-    
-    let priceHTML = '';
-    if (product.discount_price && product.discount_price < product.price) {
-        priceHTML = `
-            <div class="flex items-center justify-center space-x-2">
-                <p class="text-red-700 font-bold text-base md:text-lg">${Math.round(productDiscountPrice)} ALL</p>
-                <p class="text-xs md:text-sm text-gray-500 line-through">${Math.round(productPrice)} ALL</p>
-            </div>
-        `;
-    } else {
-        priceHTML = `<p class="text-red-700 font-bold text-base md:text-lg text-center">${Math.round(productPrice)} ALL</p>`;
-    }
-    
-    let actionsHTML = '';
-    if (!isSoldOut) {
-        actionsHTML = `
-            <div class="flex gap-2 mt-3">
-                <button onclick="event.stopPropagation(); toggleWishlist(${productId}, '${productName}', ${productPrice}, '${imageURL}')"
-                        class="bg-gray-200 text-black py-2 px-2.5 rounded hover:bg-red-700 hover:text-white transition-colors flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                    </svg>
-                </button>
-                
-                <button onclick="event.stopPropagation(); addToCart(${productId}, '${productName}', ${productDiscountPrice}, '${imageURL}')"
-                        class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
-                    </svg>
-                    <span class="text-xs md:text-sm whitespace-nowrap">
-                        <span class="md:hidden">Shto</span>
-                        <span class="hidden md:inline">Shto ne Shporte</span>
-                    </span>
-                </button>
-            </div>
-        `;
-    } else {
-        actionsHTML = `
-            <div class="mt-3 bg-gray-100 py-3 rounded text-center">
-                <p class="text-gray-600 font-semibold text-sm">Sold Out</p>
-            </div>
-        `;
-    }
-    
-    card.innerHTML = `
-        <a href="/product/${productId}/${encodeURIComponent(productName)}" class="cursor-pointer flex-1 flex flex-col ${isSoldOut ? 'opacity-85' : ''}">
-            <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden relative">
-                <img src="${imageURL}" alt="${productName}" class="w-full h-full object-contain p-2 ${isSoldOut ? 'grayscale opacity-60' : ''}" loading="lazy">
-                ${isSoldOut ? '<div class="absolute inset-0 flex items-center justify-center bg-grey bg-opacity-20"><span class="bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-xs md:text-sm shadow-lg">SOLD OUT</span></div>' : ''}
-            </div>
-            <h4 class="font-semibold text-black mb-2 text-center text-sm md:text-base min-h-[40px] md:min-h-[24px] line-clamp-2 md:line-clamp-1">${product.product_name}</h4>
-            <div class="mt-auto">
-                ${priceHTML}
-            </div>
-        </a>
-        ${actionsHTML}
-    `;
-    
-    return card;
-}
-
-// Load products on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadSiteSettings();
-    loadPopularProducts();
 });
 </script>
 {% endblock %}
