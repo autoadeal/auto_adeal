@@ -295,7 +295,11 @@ def checkout():
 @app.route('/special-offers')
 def special_offers():
     """Special offers page"""
-    return render_template('special_offers.html')
+    products = Product.query.filter(
+        (Product.discount_price.isnot(None)) | (Product.is_special == True)
+    ).filter(Product.main_image.isnot(None), Product.main_image != '').all()
+    
+    return render_template('special_offers.html', products=products)
 
 @app.route('/order-tracking')
 def order_tracking():
@@ -320,19 +324,69 @@ def refund_policy():
 @app.route('/brands')
 def brands_list():
     """Brands list page"""
-    return render_template('brands_list.html')
+    # Get all unique brands from products
+    brand_spec_type = SpecType.query.filter_by(name='E pershtatshme per').first()
+    
+    brands = set()
+    if brand_spec_type:
+        all_brand_specs = ProductSpec.query.filter_by(spectype_id=brand_spec_type.id).all()
+        for spec in all_brand_specs:
+            if spec.value:
+                for brand in spec.value.split(','):
+                    brands.add(brand.strip())
+    
+    brands = sorted(list(brands))
+    
+    return render_template('brands_list.html', brands=brands)
 
 @app.route('/brand/<path:brand_name>')
 def brand_page(brand_name):
     """Individual brand page"""
-    return render_template('brand.html')
+    # Get the spec_type for brands
+    brand_spec_type = SpecType.query.filter_by(name='E pershtatshme per').first()
+    
+    if not brand_spec_type:
+        return render_template('brand.html', brand_name=brand_name, products=[])
+    
+    # Get all product specs with this type
+    all_brand_specs = ProductSpec.query.filter_by(spectype_id=brand_spec_type.id).all()
+    
+    # Filter products where brand appears in comma-separated list
+    product_ids = []
+    for spec in all_brand_specs:
+        if spec.value:
+            brands = [b.strip() for b in spec.value.split(',')]
+            if brand_name in brands or any(brand_name.lower() == b.lower() for b in brands):
+                product_ids.append(spec.product_id)
+    
+    product_ids = list(set(product_ids))
+    
+    # Get products
+    products = Product.query.filter(
+        Product.product_id.in_(product_ids),
+        Product.main_image.isnot(None),
+        Product.main_image != ''
+    ).all()
+    
+    return render_template('brand.html', brand_name=brand_name, products=products)
 
 @app.route('/subcategory/<int:subcategory_id>')
 @app.route('/subcategory/<int:subcategory_id>/<path:name>')
 def subcategory_page(subcategory_id, name=None):
     """Subcategory page"""
     subcategory = Subcategory.query.get_or_404(subcategory_id)
-    return render_template('subcategory.html', subcategory=subcategory)
+    
+    # Get products for this subcategory
+    in_stock = Product.query.filter_by(subcategory_id=subcategory_id, sold_out=False).filter(
+        Product.main_image.isnot(None), Product.main_image != ''
+    ).all()
+    sold_out = Product.query.filter_by(subcategory_id=subcategory_id, sold_out=True).filter(
+        Product.main_image.isnot(None), Product.main_image != ''
+    ).all()
+    
+    products = in_stock + sold_out
+    
+    return render_template('subcategory.html', subcategory=subcategory, products=products)
 
 @app.route('/product/<int:product_id>')
 @app.route('/product/<int:product_id>/<path:name>')
