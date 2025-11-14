@@ -1825,7 +1825,7 @@ function renderCategories() {
             btn.textContent = sub.name;
             btn.classList.add('w-full', 'text-left', 'px-3', 'py-2', 'rounded', 
                              'text-black', 'hover:bg-gray-200', 'transition-colors', 'text-sm');
-            btn.onclick = () => loadSubcategoryProducts(sub.id, sub.name);
+            btn.onclick = () => window.location.href = `/subcategory/${sub.id}/${encodeURIComponent(sub.name)}`;
             subList.appendChild(btn);
         }
         
@@ -1872,8 +1872,7 @@ function renderMobileCategories() {
             btn.classList.add('w-full', 'text-left', 'px-3', 'py-2', 'rounded', 
                              'text-black', 'hover:bg-gray-200', 'transition-colors', 'text-sm');
             btn.onclick = () => {
-                loadSubcategoryProducts(sub.id, sub.name);
-                closeMobileMenu();
+                window.location.href = `/subcategory/${sub.id}/${encodeURIComponent(sub.name)}`;
             };
             subList.appendChild(btn);
         }
@@ -2076,70 +2075,6 @@ async function showBlogPost(postId) {
 // ============================================
 // PRODUCT LOADING
 // ============================================
-async function loadSubcategoryProducts(subcategoryId, subcategoryName) {
-    try {
-        // Scroll to top
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        window.scrollTo(0, 0);
-
-        // Hide banner when navigating to subcategory
-        const banner = document.getElementById('home-banner');
-        if (banner) banner.classList.add('hidden');
-
-        // Switch to home page if not already there
-        if (currentPage !== 'home' && currentPage !== 'subcategory') {
-            showPage('home', false);
-        }
-        
-        const response = await fetch(`/api/subcategory/${subcategoryId}/products`);
-        const products = await response.json();
-        
-        document.getElementById('products-title').textContent = subcategoryName;
-        renderProducts(products);
-        
-        console.log('✅ Subcategory loaded:', subcategoryName, products.length, 'products');
-
-        // Update page title for SEO
-        document.title = `${subcategoryName} - Auto Adeal | ${products.length} Produkte`;
-        updateMetaTag('description', `Shiko ${products.length} produkte ne kategorine ${subcategoryName}. Cilesi e larte, cmime te arsyeshme, dergese e shpejte.`);
-        updateMetaTag('og:title', `${subcategoryName} - Auto Adeal`);
-        updateMetaTag('og:url', `https://autoadeal.com/#subcategory/${subcategoryId}`);
-        
-        updateBreadcrumbs([
-            { name: 'Home', url: 'https://autoadeal.com' },
-            { name: subcategoryName, url: `https://autoadeal.com/#subcategory/${subcategoryId}` }
-        ]);
-
-        // Load filters for this subcategory
-        await loadSubcategoryFilters(subcategoryId);
-        
-        // UPDATE currentPage FIRST
-        previousPage = currentPage;
-        currentPage = 'subcategory';
-        
-        console.log('📄 CurrentPage updated:', previousPage, '→', currentPage);
-        console.log('📄 Current window.history.state BEFORE push:', window.history.state);
-        
-        // ALWAYS add to history (unless coming from popstate)
-        if (!window.isNavigatingHistory) {
-            window.history.pushState({
-                page: 'subcategory',
-                subcategoryId: subcategoryId,
-                subcategoryName: subcategoryName,
-                timestamp: Date.now()
-            }, '', `/#subcategory/${subcategoryId}/${encodeURIComponent(subcategoryName)}`);
-            
-            console.log('➕ Added to history: subcategory', subcategoryId, subcategoryName);
-            console.log('📄 Current window.history.state AFTER push:', window.history.state);
-        } else {
-            console.log('⏭️ Skipped history add (navigating via popstate)');
-        }
-    } catch (error) {
-        console.error('❌ Failed to load products:', error);
-        showNotification('Ngarkimi i produkteve deshtoi', 'error');
-    }
-}
 
 async function loadPopularProducts() {
     try {
@@ -2374,7 +2309,7 @@ function createProductCard(product, hideActions = false) {
     }
     
     card.innerHTML = `
-        <div onclick="showProductDetail(${productId})" class="cursor-pointer flex-1 flex flex-col ${isSoldOut ? 'opacity-85' : ''}">
+        <div onclick="window.location.href='/product/${productId}'" class="cursor-pointer flex-1 flex flex-col ${isSoldOut ? 'opacity-85' : ''}">
             <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden relative">
                 <img src="${imageURL}" alt="${productName} - Pjese Makine Auto Adeal" class="w-full h-full object-contain p-2 ${isSoldOut ? 'grayscale opacity-60' : ''}" loading="lazy">
                 ${isSoldOut ? '<div class="absolute inset-0 flex items-center justify-center bg-grey bg-opacity-20"><span class="bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-xs md:text-sm shadow-lg">SOLD OUT</span></div>' : ''}
@@ -2391,302 +2326,8 @@ function createProductCard(product, hideActions = false) {
 }
 
 // ============================================
-// PRODUCT DETAIL
+// PRODUCT DETAIL deleted
 // ============================================
-async function showProductDetail(productId) {
-    try {
-        // Hide all pages FIRST
-        document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
-        
-        // Hide sidebar and mobile filters
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.style.display = 'none';
-        const mobileFiltersContainer = document.getElementById('mobile-filters-container');
-        if (mobileFiltersContainer) mobileFiltersContainer.style.display = 'none';
-        
-        // Then scroll to top
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        window.scrollTo(0, 0);
-
-        const response = await fetch(`/api/product/${productId}`);
-        const product = await response.json();
-        
-        console.log('📦 Product API response:', product);
-  
-        // Show product detail page
-        document.getElementById('product-detail-page').style.display = 'block';
-
-        const container = document.getElementById('product-detail-content');
-        
-        // SAVE CURRENT STATE BEFORE HIDING
-        const wasOnHomePage = document.getElementById('home-page').style.display !== 'none';
-        const currentProductsContainer = document.getElementById('products-container').innerHTML;
-        const currentProductsTitle = document.getElementById('products-title').textContent;
-
-        // UPDATE SEO META TAGS
-        document.title = `${product.name} - Auto Adeal | Çmimi ${formatPrice(product.discount_price || product.price)}`;
-        updateMetaTag('description', `Blej ${product.name} online. ${product.description || ''} Cmimi: ${formatPrice(product.discount_price || product.price)}. Dergesa ne Shqiperi dhe Kosove.`);
-        updateMetaTag('og:title', `${product.name} - Auto Adeal`);
-        updateMetaTag('og:description', product.description || `Blej ${product.name} me cmim te mire`);
-        updateMetaTag('og:image', product.main_image || '/static/logo.png');
-        updateMetaTag('og:url', `https://autoadeal.com/#product/${productId}`);
-
-        updateBreadcrumbs([
-            { name: 'Home', url: 'https://autoadeal.com' },
-            { name: 'Produkte', url: 'https://autoadeal.com' },
-            { name: product.name, url: `https://autoadeal.com/#product/${productId}` }
-        ]);
-        
-        const mainImageURL = product.main_image || '/static/uploads/default.png';
-        const priceDisplay = product.discount_price && product.discount_price < product.price
-            ? `<div class="flex items-center space-x-3">
-                 <p class="text-red-700 font-bold text-3xl">${formatPrice(product.discount_price)}</p>
-                 <p class="text-gray-500 line-through text-xl">${formatPrice(product.price)}</p>
-               </div>`
-            : `<p class="text-red-700 font-bold text-3xl">${formatPrice(product.price)}</p>`;
-        
-        // Build specs HTML
-        let specsHTML = '';
-        if (product.specs && Object.keys(product.specs).length > 0) {
-            specsHTML = '<div class="mb-6"><h3 class="font-bold text-lg mb-3 text-black">Specifikimet</h3><div class="grid grid-cols-2 gap-3">';
-            for (const [key, value] of Object.entries(product.specs)) {
-                specsHTML += `
-                    <div class="bg-gray-50 p-3 rounded-lg">
-                        <p class="text-xs text-gray-600 mb-1">${key}</p>
-                        <p class="text-sm font-semibold text-black">${value}</p>
-                    </div>
-                `;
-            }
-            specsHTML += '</div></div>';
-        }
-        
-        // Additional images
-        let additionalImagesHTML = '';
-        if (product.images && product.images.length > 0) {
-            additionalImagesHTML = `
-                <div class="grid grid-cols-4 gap-3 mt-4">
-                    ${product.images.slice(0, 4).map(img => `
-                        <div class="aspect-square border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors" 
-                             onclick="document.querySelector('#main-product-image').src='${img}'">
-                            <img src="${img}" class="w-full h-full object-contain">
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-        
-        container.innerHTML = `
-            <!-- Mobile: Title First -->
-            <h1 class="text-xl font-bold text-black mb-4 lg:hidden">${product.name}</h1> 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 mb-8 md:mb-12">
-                <!-- Left side: Images -->
-                <div class="flex items-center justify-center">
-                    <div class="flex flex-col lg:flex-row items-center lg:items-start gap-4 max-w-[600px]">
-                        <!-- Desktop: Thumbnails on left -->
-                        ${product.images && product.images.length > 0 ? `
-                            <div class="hidden lg:flex lg:flex-col gap-3" id="desktop-thumbnails">
-                                ${product.images.slice(0, 4).map((img, idx) => `
-                                    <div class="flex-shrink-0 aspect-square w-[112px] h-[112px] border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white" 
-                                         style="min-width: 112px; min-height: 112px;"
-                                         data-image="${img.replace(/"/g, '&quot;')}"
-                                         data-thumb-index="${idx}">
-                                        <img src="${img}" alt="${product.name} - Foto ${idx + 1}" class="w-full h-full object-contain p-2" loading="lazy">
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                        
-                        <div class="flex flex-col items-center gap-4 w-full">
-                            <!-- Main image -->
-                            <div class="aspect-square w-full max-w-[90vw] lg:w-[484px] lg:h-[484px] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 p-4 relative" style="min-height: 350px;">
-                                <img id="main-product-image" src="${mainImageURL}" alt="${product.name} - Blerje Online Auto Adeal Shqiperi" class="w-full h-full object-contain ${product.sold_out ? 'grayscale opacity-50' : ''}" style="min-height: 300px;" loading="eager">
-                                ${product.sold_out ? '<div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20"><span class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-lg shadow-lg">SOLD OUT</span></div>' : ''}
-                            </div>
-                            
-                            <!-- Mobile: Thumbnails below -->
-                            ${product.images && product.images.length > 0 ? `
-                                <div class="grid grid-cols-4 gap-2 w-full max-w-[90vw] lg:hidden" id="mobile-thumbnails">
-                                    ${product.images.slice(0, 4).map((img, idx) => `
-                                        <div class="aspect-square border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-red-600 transition-colors bg-white"
-                                             style="min-height: 80px;"
-                                             data-image="${img.replace(/"/g, '&quot;')}"
-                                             data-thumb-index="${idx}">
-                                            <img src="${img}" class="w-full h-full object-contain p-1" loading="lazy">
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right side: Product details -->
-                <div>
-                    <h1 class="hidden lg:block text-3xl font-bold text-black mb-4">${product.name}</h1>
-                    <div class="mb-6">${priceDisplay}</div>
-                    
-                    <div class="mb-6">
-                        <h3 class="font-bold text-lg mb-2 text-black">Pershkrimi</h3>
-                        <p class="text-gray-700 leading-relaxed">${product.description || 'Nuk ka pershkrim te disponueshem.'}</p>
-                    </div>
-                    
-                    ${specsHTML}
-                    
-                    <div class="flex space-x-4 mt-8">
-                        ${product.sold_out ? `
-                            <div class="flex-1 bg-gray-400 text-white px-6 py-4 rounded-lg text-center font-bold text-lg cursor-not-allowed">
-                                SOLD OUT - Not Available
-                            </div>
-                        ` : `
-                            <button onclick="toggleWishlist(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${mainImageURL}')" 
-                                    class="border-2 border-red-600 text-red-600 px-6 py-3 rounded-lg hover:bg-red-50 transition-colors flex items-center space-x-2 font-medium">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                </svg>
-                                <span>Deshirat</span>
-                            </button>
-                            <button onclick="addToCart(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.discount_price || product.price}, '${mainImageURL}')" 
-                                    class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 font-medium">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
-                                </svg>
-                                <span>Shto ne Shporte</span>
-                            </button>
-                        `}
-                    </div>
-                </div>
-            </div>
-            
-            ${product.related && product.related.length > 0 ? `
-                <div class="mt-16">
-                    <h3 class="text-2xl font-bold text-black mb-6">Produkte te Ngjashme</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 items-stretch">
-                        ${product.related.map(r => {
-                            const rImageURL = r.main_image || '/static/uploads/default.png';
-                            const rPriceDisplay = r.discount_price && r.discount_price < r.price
-                                ? `<div class="flex items-center space-x-2">
-                                     <p class="text-red-700 font-semibold">${formatPrice(r.discount_price)}</p>
-                                     <p class="text-xs text-gray-500 line-through">${formatPrice(r.price)}</p>
-                                   </div>`
-                                : `<p class="text-red-700 font-semibold">${formatPrice(r.price)}</p>`;
-                            
-                            return `
-                                <div onclick="showProductDetail(${r.id})" class="cursor-pointer border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow bg-white flex flex-col h-full">
-                                    <div class="aspect-square bg-white rounded-lg overflow-hidden mb-3 flex-shrink-0">
-                                        <img src="${rImageURL}" class="w-full h-full object-contain">
-                                    </div>
-                                    <h4 class="font-semibold text-black mb-2 text-sm text-center line-clamp-2">${r.name}</h4>
-                                    <div class="mt-auto pt-2">
-                                        ${rPriceDisplay}
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            ` : ''}
-        `;
-
-        // ADD PRODUCT SCHEMA FOR GOOGLE
-        const schema = {
-            "@context": "https://schema.org/",
-            "@type": "Product",
-            "name": product.name,
-            "image": product.main_image || '/static/logo.png',
-            "description": product.description || product.name,
-            "sku": `PROD-${product.id}`,
-            "brand": {
-                "@type": "Brand",
-                "name": "Auto Adeal"
-            },
-            "offers": {
-                "@type": "Offer",
-                "url": `https://autoadeal.com/#product/${product.id}`,
-                "priceCurrency": "ALL",
-                "price": product.discount_price || product.price,
-                "availability": product.sold_out ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
-                "seller": {
-                    "@type": "Organization",
-                    "name": "Auto Adeal"
-                }
-            }
-        };
-        
-        // Remove old schema if exists
-        const oldSchema = document.getElementById('product-schema');
-        if (oldSchema) oldSchema.remove();
-        
-        // Add new schema
-        const script = document.createElement('script');
-        script.id = 'product-schema';
-        script.type = 'application/ld+json';
-        script.text = JSON.stringify(schema);
-        document.head.appendChild(script);
-        
-        console.log('✅ Product detail loaded:', product.name || product.product_name);
-
-        // Attach thumbnail click handlers
-        setTimeout(() => {
-            const mainImage = document.getElementById('main-product-image');
-            
-            // Desktop thumbnails
-            const desktopThumbs = document.querySelectorAll('#desktop-thumbnails > div[data-image]');
-            desktopThumbs.forEach(thumb => {
-                thumb.addEventListener('click', function() {
-                    const imgSrc = this.getAttribute('data-image');
-                    if (mainImage && imgSrc) {
-                        mainImage.src = imgSrc;
-                    }
-                });
-            });
-            
-            // Mobile thumbnails
-            const mobileThumbs = document.querySelectorAll('#mobile-thumbnails > div[data-image]');
-            mobileThumbs.forEach(thumb => {
-                thumb.addEventListener('click', function() {
-                    const imgSrc = this.getAttribute('data-image');
-                    if (mainImage && imgSrc) {
-                        mainImage.src = imgSrc;
-                    }
-                });
-            });
-        }, 100);
-
-        // Handle history
-        if (!window.isNavigatingHistory) {
-            // Save the current page state before navigating
-            const previousState = window.history.state;
-            console.log('💾 Previous state before product:', previousState);
-            
-            previousPage = currentPage;
-            currentPage = 'product-detail';
-            
-            // Push product to history
-            window.history.pushState({ 
-                page: 'product-detail', 
-                productId: productId,
-                from: previousPage,
-                previousState: previousState, // Save previous state for reference
-                timestamp: Date.now()
-            }, '', `/#product/${productId}`);
-            console.log('➕ Added to history: product', productId, 'from', previousPage);
-        } else {
-            console.log('⏭️ Skipped history update (navigating via popstate)');
-            currentPage = 'product-detail';
-        }
-        
-        // Force scroll to top again
-        setTimeout(() => {
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-            window.scrollTo(0, 0);
-        }, 0);
-    } catch (error) {
-        console.error('❌ Failed to load product detail:', error);
-        showNotification('Dështoi ngarkimi i detajeve të produktit', 'error');
-    }
-}
 
 // ============================================
 // CART FUNCTIONALITY
@@ -4077,52 +3718,18 @@ function showPage(pageId, addToHistory = true) {
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function(event) {
-    console.log('📍 Popstate triggered');
-    console.log('   Current state:', event.state);
-    console.log('   Current URL:', window.location.href);
-    console.log('   Current hash:', window.location.hash);
-    console.log('   History length:', window.history.length);
+    console.log('🔍 Popstate triggered');
     
-    // Prevent duplicate history entries
-    window.isNavigatingHistory = true;
+    // For MPA, let browser handle navigation naturally
+    // Only handle SPA pages (home, cart, wishlist, etc.)
+    const hash = window.location.hash.substring(1) || 'home';
     
-    // Scroll to top
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    window.scrollTo(0, 0);
+    const spaPages = ['home', 'special-offers', 'brands', 'contact', 'cart', 'wishlist', 'checkout'];
     
-    // Handle navigation based on state OR hash
-    if (event.state && event.state.page) {
-        handleNavigation(event.state);
-    } else {
-        // Fallback to hash
-        const hash = window.location.hash.substring(1) || 'home';
-        console.log('   No state, using hash:', hash);
-        
-        if (hash === 'home' || hash === '') {
-            showPage('home', false);
-            loadPopularProducts();
-        } else if (hash.startsWith('product/')) {
-            const productId = parseInt(hash.split('/')[1]);
-            showProductDetail(productId);
-        } else if (hash.startsWith('brand/')) {
-            const brandName = decodeURIComponent(hash.split('/')[1]);
-            showBrandProducts(brandName);
-        } else if (hash.startsWith('subcategory/')) {
-            const parts = hash.split('/');
-            const subcategoryId = parseInt(parts[1]);
-            const subcategoryName = decodeURIComponent(parts[2] || 'Products');
-            loadSubcategoryProducts(subcategoryId, subcategoryName);
-        } else {
-            showPage(hash, false);
-        }
+    if (spaPages.includes(hash)) {
+        showPage(hash, false);
     }
-    
-    // Clear flag after navigation completes
-    setTimeout(() => {
-        window.isNavigatingHistory = false;
-        console.log('🏁 Navigation flag cleared');
-    }, 500);
+    // For product/subcategory URLs, browser will handle with normal navigation
 });
 
 // Helper function to handle navigation
@@ -4325,24 +3932,6 @@ function updatePageSEO(title, description) {
 // INITIALIZE ON PAGE LOAD
 // ============================================
 document.addEventListener('DOMContentLoaded', initializeApp);
-
-// Global back button handler for product detail page
-function handleProductBackClick(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    console.log('🔙 Back button clicked from product page');
-    console.log('   Current history state:', window.history.state);
-    console.log('   History length:', window.history.length);
-    window.history.back();
-}
-
-// Global back button handler for brand products page
-function handleBrandBackClick(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    console.log('🔙 Back button clicked from brand page');
-    window.history.back();
-}
 
 </script>
 </body>
