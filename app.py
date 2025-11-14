@@ -283,17 +283,57 @@ def create_customer_confirmation_email(order, cart_items, customer_email):
 # ---------------- ROUTES ----------------
 @app.route('/subcategory/<int:subcategory_id>')
 @app.route('/subcategory/<int:subcategory_id>/<path:name>')
-def redirect_to_subcategory(subcategory_id, name=None):
-    """Redirect /subcategory/1/name to /#subcategory/1/name"""
-    from urllib.parse import quote
-    if name:
-        return redirect(f'/#subcategory/{subcategory_id}/{quote(name)}')
-    return redirect(f'/#subcategory/{subcategory_id}')
+def subcategory_page(subcategory_id, name=None):
+    """Show subcategory products page"""
+    subcategory = Subcategory.query.get_or_404(subcategory_id)
+    
+    # Get all products in this subcategory (in stock first, then sold out)
+    in_stock = Product.query.filter_by(subcategory_id=subcategory_id, sold_out=False).filter(
+        Product.main_image.isnot(None), 
+        Product.main_image != ''
+    ).all()
+    sold_out = Product.query.filter_by(subcategory_id=subcategory_id, sold_out=True).filter(
+        Product.main_image.isnot(None), 
+        Product.main_image != ''
+    ).all()
+    products = in_stock + sold_out
+    
+    # Get all categories for sidebar
+    categories = Category.query.all()
+    
+    return render_template('subcategory.html', 
+                         subcategory=subcategory, 
+                         products=products,
+                         categories=categories)
 
 @app.route('/product/<int:product_id>')
-def redirect_to_product(product_id):
-    """Redirect /product/1 to /#product/1"""
-    return redirect(f'/#product/{product_id}')
+def product_page(product_id):
+    """Show product detail page"""
+    product = Product.query.get_or_404(product_id)
+    
+    # Get related products (same subcategory, exclude current)
+    related = Product.query.filter(
+        Product.subcategory_id == product.subcategory_id,
+        Product.product_id != product.product_id,
+        Product.main_image.isnot(None),
+        Product.main_image != ''
+    ).limit(6).all()
+    
+    # Format product specs
+    specs = {}
+    for spec in product.specs:
+        specs[spec.spec_type.name] = spec.value
+    
+    # Format additional images
+    images = []
+    if product.image_urls:
+        images = [url.strip() for url in product.image_urls.split(',') if url.strip()]
+    
+    return render_template('product.html', 
+                         product=product,
+                         specs=specs,
+                         images=images,
+                         related=related)
 
 @app.route('/brand/<path:brand_name>')
 def redirect_to_brand(brand_name):
