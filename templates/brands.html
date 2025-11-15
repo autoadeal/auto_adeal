@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="sq" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <title>Markat e Makinave - Auto Adeal | VW, BMW, Audi, Mercedes, Toyota dhe më shumë</title>
+  <meta name="description" content="Gjej pjesë dhe aksesore për markën e makinës tënde: Volkswagen, BMW, Audi, Mercedes-Benz, Toyota, Ford dhe shumë të tjera.">
+  <meta name="keywords" content="auto adeal, marka, volkswagen, bmw, audi, mercedes, toyota, ford, pjese makine">
+  
+  <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32.png">
+  
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Markat e Makinave - Auto Adeal">
+  <meta property="og:description" content="Gjej pjesë për të gjitha markat e njohura të makinave">
+  <meta property="og:image" content="https://autoadeal.com/static/logo.png">
+  <meta property="og:url" content="https://autoadeal.com/brands">
+  
+  <link rel="canonical" href="https://autoadeal.com/brands">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-E15BNGDX8F"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-E15BNGDX8F');
+  </script>
+  
+  <style>
+    @media (max-width: 767px) {
+      input[type="text"], input[type="email"], input[type="password"], select {
+        font-size: 16px !important;
+      }
+    }
+  </style>
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://autoadeal.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Marka",
+        "item": "https://autoadeal.com/brands"
+      }
+    ]
+  }
+  </script>
+</head>
+
+<body class="h-full bg-white">
+  <!-- COPY FULL HEADER FROM ABOVE -->
+  
+  <!-- Navigation Bar -->
+  <nav class="bg-white border-b border-gray-200 py-4">
+    <div class="container mx-auto px-4 md:px-6">
+      <div class="flex justify-center space-x-6 md:space-x-24">
+        <a href="/" class="text-black hover:text-red-600 font-medium transition-colors">Kryefaqja</a>
+        <a href="/special-offers" class="text-black hover:text-red-600 font-medium transition-colors">Oferta</a>
+        <a href="/brands" class="text-red-600 font-medium">Marka</a>
+        <a href="/contact" class="text-black hover:text-red-600 font-medium transition-colors">Na Kontaktoni</a>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 md:px-6 py-6">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-black">Markat e Makinave</h1>
+      <a href="/" class="text-red-600 hover:text-red-700">← Kthehu</a>
+    </div>
+    
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+      {% for brand in brands %}
+      {% set brand_slug = brand.lower().replace(' ', '-').replace('ë', 'e').replace('ç', 'c') %}
+      <a href="/brand/{{ brand|urlencode }}" class="bg-white border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:shadow-lg transition-shadow">
+        <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden">
+          <img src="/static/brands/{{ brand_slug }}.png" 
+               alt="{{ brand }}" 
+               class="w-full h-full object-contain p-2"
+               onerror="this.src='/static/brands/default.png'">
+        </div>
+        <h3 class="font-bold text-black text-sm">{{ brand }}</h3>
+      </a>
+      {% endfor %}
+    </div>
+  </main>
+  
+  <!-- COPY FULL FOOTER FROM ABOVE -->
+  
+  <!-- JavaScript -->
+  <script>
+    let cartItems = JSON.parse(localStorage.getItem('auto_adeal_cart') || '[]');
+    let wishlistItems = JSON.parse(localStorage.getItem('auto_adeal_wishlist') || '[]');
+    let currentUser = null;
+    
+    function loadUserFromStorage() {
+      const stored = localStorage.getItem('auto_adeal_user');
+      const loginTime = localStorage.getItem('auto_adeal_login_time');
+      if (stored && loginTime) {
+        const daysSinceLogin = (Date.now() - parseInt(loginTime)) / (1000 * 60 * 60 * 24);
+        if (daysSinceLogin < 730) {
+          try {
+            currentUser = JSON.parse(stored);
+            updateAuthUI();
+          } catch (e) {
+            localStorage.removeItem('auto_adeal_user');
+            localStorage.removeItem('auto_adeal_login_time');
+          }
+        }
+      }
+    }
+    
+    function updateAuthUI() {
+      const accountLabel = document.getElementById('account-label');
+      const loggedOutOptions = document.getElementById('logged-out-options');
+      const loggedInOptions = document.getElementById('logged-in-options');
+      const dropdownUserName = document.getElementById('dropdown-user-name');
+      const dropdownUserEmail = document.getElementById('dropdown-user-email');
+      const loggedOutOptionsMobile = document.getElementById('logged-out-options-mobile');
+      const loggedInOptionsMobile = document.getElementById('logged-in-options-mobile');
+      const dropdownUserNameMobile = document.getElementById('dropdown-user-name-mobile');
+      const dropdownUserEmailMobile = document.getElementById('dropdown-user-email-mobile');
+      
+      if (currentUser) {
+        if (accountLabel) accountLabel.textContent = currentUser.name;
+        if (loggedOutOptions) loggedOutOptions.classList.add('hidden');
+        if (loggedInOptions) loggedInOptions.classList.remove('hidden');
+        if (dropdownUserName) dropdownUserName.textContent = `${currentUser.name} ${currentUser.surname}`;
+        if (dropdownUserEmail) dropdownUserEmail.textContent = currentUser.email;
+        if (loggedOutOptionsMobile) loggedOutOptionsMobile.classList.add('hidden');
+        if (loggedInOptionsMobile) loggedInOptionsMobile.classList.remove('hidden');
+        if (dropdownUserNameMobile) dropdownUserNameMobile.textContent = `${currentUser.name} ${currentUser.surname}`;
+        if (dropdownUserEmailMobile) dropdownUserEmailMobile.textContent = currentUser.email;
+      } else {
+        if (accountLabel) accountLabel.textContent = 'Llogaria';
+        if (loggedOutOptions) loggedOutOptions.classList.remove('hidden');
+        if (loggedInOptions) loggedInOptions.classList.add('hidden');
+        if (loggedOutOptionsMobile) loggedOutOptionsMobile.classList.remove('hidden');
+        if (loggedInOptionsMobile) loggedInOptionsMobile.classList.add('hidden');
+      }
+    }
+    
+    function toggleAccountDropdown() {
+      const dropdown = document.getElementById('account-dropdown');
+      const dropdownMobile = document.getElementById('account-dropdown-mobile');
+      if (dropdown) dropdown.classList.toggle('hidden');
+      if (dropdownMobile) dropdownMobile.classList.toggle('hidden');
+    }
+    
+    function closeAccountDropdown() {
+      const dropdown = document.getElementById('account-dropdown');
+      const dropdownMobile = document.getElementById('account-dropdown-mobile');
+      if (dropdown) dropdown.classList.add('hidden');
+      if (dropdownMobile) dropdownMobile.classList.add('hidden');
+    }
+    
+    function showLoginModal() {
+      window.location.href = '/#login';
+    }
+    
+    function showSignupModal() {
+      window.location.href = '/#signup';
+    }
+    
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('auto_adeal_user');
+      localStorage.removeItem('auto_adeal_login_time');
+      updateAuthUI();
+      showNotification('Dalja u krye me sukses', 'success');
+    }
+    
+    function updateCartCount() {
+      document.getElementById('cart-count').textContent = cartItems.length;
+      document.getElementById('cart-count-mobile').textContent = cartItems.length;
+    }
+    
+    function updateWishlistCount() {
+      document.getElementById('wishlist-count').textContent = wishlistItems.length;
+      document.getElementById('wishlist-count-mobile').textContent = wishlistItems.length;
+    }
+    
+    function performSearch() {
+      const query = document.getElementById('search-input').value.trim();
+      if (query) {
+        window.location.href = '/search?q=' + encodeURIComponent(query);
+      }
+    }
+    
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const overlay = document.getElementById('mobile-menu-overlay');
+      menu.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+    
+    function closeMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const overlay = document.getElementById('mobile-menu-overlay');
+      menu.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    }
+    
+    function showNotification(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+    
+    document.addEventListener('click', function(event) {
+      const accountButton = document.getElementById('account-button');
+      const accountButtonMobile = document.getElementById('account-button-mobile');
+      const dropdown = document.getElementById('account-dropdown');
+      const dropdownMobile = document.getElementById('account-dropdown-mobile');
+      
+      const clickedAccountButton = accountButton && accountButton.contains(event.target);
+      const clickedAccountButtonMobile = accountButtonMobile && accountButtonMobile.contains(event.target);
+      const clickedDropdown = dropdown && dropdown.contains(event.target);
+      const clickedDropdownMobile = dropdownMobile && dropdownMobile.contains(event.target);
+      
+      if (!clickedAccountButton && !clickedAccountButtonMobile && !clickedDropdown && !clickedDropdownMobile) {
+        if (dropdown) dropdown.classList.add('hidden');
+        if (dropdownMobile) dropdownMobile.classList.add('hidden');
+      }
+    });
+    
+    loadUserFromStorage();
+    updateCartCount();
+    updateWishlistCount();
+  </script>
+</body>
+</html>

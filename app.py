@@ -376,6 +376,70 @@ def product_page(slug):
                          images=images,
                          related=related)
 
+@app.route('/special-offers')
+def special_offers_page():
+    """Show special offers page"""
+    products = Product.query.filter(
+        (Product.discount_price.isnot(None)) | (Product.is_special == True),
+        Product.main_image.isnot(None),
+        Product.main_image != ''
+    ).all()
+    
+    return render_template('special_offers.html', products=products)
+
+@app.route('/brands')
+def brands_page():
+    """Show brands page"""
+    brands = [
+        'Volkswagen', 'BMW', 'Audi', 'Mercedes-Benz', 'Toyota', 'Ford', 
+        'Skoda', 'Porsche', 'SEAT', 'Opel', 'Fiat', 'Range Rover', 
+        'Tesla', 'Hyundai', 'Citroën', 'MINI', 'Honda', 'Peugeot', 
+        'Renault', 'Nissan', 'Volvo', 'Mazda'
+    ]
+    return render_template('brands.html', brands=brands)
+
+@app.route('/brand/<brand_name>')
+def brand_products_page(brand_name):
+    """Show products for a specific brand"""
+    brand_spec_type = SpecType.query.filter_by(name='E pershtatshme per').first()
+    
+    if not brand_spec_type:
+        return render_template('brand_products.html', brand_name=brand_name, products=[])
+    
+    all_brand_specs = ProductSpec.query.filter_by(spectype_id=brand_spec_type.id).all()
+    
+    product_ids = []
+    for spec in all_brand_specs:
+        if spec.value:
+            brands = [b.strip() for b in spec.value.split(',')]
+            if brand_name in brands or any(brand_name.lower() == b.lower() for b in brands):
+                product_ids.append(spec.product_id)
+    
+    product_ids = list(set(product_ids))
+    
+    products = Product.query.filter(
+        Product.product_id.in_(product_ids),
+        Product.main_image.isnot(None),
+        Product.main_image != ''
+    ).all()
+    
+    return render_template('brand_products.html', brand_name=brand_name, products=products)
+
+@app.route('/cart')
+def cart_page():
+    """Show cart page"""
+    return render_template('cart.html')
+
+@app.route('/checkout')
+def checkout_page():
+    """Show checkout page"""
+    return render_template('checkout.html')
+
+@app.route('/wishlist')
+def wishlist_page():
+    """Show wishlist page"""
+    return render_template('wishlist.html')
+
 @app.route('/brand/<path:brand_name>')
 def redirect_to_brand(brand_name):
     """Redirect /brand/BMW to /#brand/BMW"""
