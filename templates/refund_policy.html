@@ -10,6 +10,8 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -23,32 +25,128 @@
                 font-size: 16px !important;
             }
         }
+        
+        .flag-icon {
+            width: 24px;
+            height: 16px;
+            display: inline-block;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
     <!-- Header -->
     <header class="bg-black text-white py-3 md:py-4">
         <div class="container mx-auto px-4 md:px-6">
-            <div class="flex items-center justify-between">
-                <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
-                    <img src="/static/logo.png" alt="Auto Adeal" class="h-12 md:h-14 w-auto" onerror="this.style.display='none'">
-                </a>
+            <!-- Mobile Layout -->
+            <div class="md:hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <button id="mobile-menu-btn" onclick="window.location.href='/'" class="text-white mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    
+                    <a href="/" class="flex items-center flex-1 h-8">
+                        <img src="/static/logo.png" alt="Logo" class="h-full w-auto object-contain">
+                    </a>
+                    
+                    <div class="flex items-center space-x-4">
+                        <a href="/" class="flex items-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </a>
+                        
+                        <a href="/#wishlist" class="relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                        </a>
+                        
+                        <a href="/#cart" class="relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                            </svg>
+                            <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                        </a>
+                    </div>
+                </div>
                 
-                <a href="/" class="text-white hover:text-red-500 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                    </svg>
-                </a>
+                <div class="flex">
+                    <input type="text" placeholder="Kërko..." class="flex-1 px-4 py-2 rounded-l-full text-black focus:outline-none text-sm">
+                    <button class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-r-full transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.6-5.65a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Desktop Layout -->
+            <div class="hidden md:flex items-center justify-between">
+                <div class="flex items-center ml-8">
+                    <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
+                        <img src="/static/logo.png" alt="Logo" class="h-12 md:h-14 w-auto max-w-[250px] object-contain">
+                    </a>
+                </div>
+                
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="flex">
+                        <input type="text" placeholder="Kërko..." class="flex-1 px-4 py-2 rounded-l-full text-black focus:outline-none">
+                        <button class="bg-red-600 hover:bg-red-700 pl-6 pr-7 py-2 rounded-r-full transition-colors flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.6-5.65a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-6">
+                    <a href="/" class="flex items-center space-x-2 text-white hover:text-red-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        <span>Llogaria</span>
+                    </a>
+                    
+                    <a href="/#wishlist" class="relative hover:text-red-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                    </a>
+                    
+                    <a href="/#cart" class="relative hover:text-red-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                        </svg>
+                        <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white border-b border-gray-200 py-4">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="flex justify-center space-x-6 md:space-x-24 overflow-x-auto">
+                <a href="/" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Kryefaqja</a>
+                <a href="/#special-offers" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Oferta</a>
+                <a href="/#brands" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Marka</a>
+                <a href="/#contact" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Na Kontaktoni</a>
+            </div>
+        </div>
+    </nav>
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 md:px-6 py-12 max-w-4xl">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-black">Refund & Shipping Policy</h1>
             <a href="/" class="text-red-600 hover:text-red-700 font-medium">
-                Kthehu në Kryefaqe →
+                Kthehu →
             </a>
         </div>
         
@@ -69,7 +167,17 @@
                 
                 <div class="grid md:grid-cols-2 gap-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
-                        <h3 class="text-xl font-bold text-black mb-3">🇦🇱 Shqipëri</h3>
+                        <h3 class="text-xl font-bold text-black mb-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="flag-icon" viewBox="0 0 640 480">
+                                <path fill="#e41e20" d="M0 0h640v480H0z"/>
+                                <path d="M272 93.3c-4.6 0-12.3 1.6-12.3 10.4 0 8.9 4.6 10.4 12.3 10.4 29.1 0 38.8 17.9 38.8 32.3 0 21.8-13.9 34.1-30.7 44.6l8.4 11.7c9-.7 22.6-.6 35.5-12 12.2-10.8 19.6-28.8 19.6-47.5.1-33-21.1-49.9-71.6-49.9z" fill="#000"/>
+                                <path d="m280.4 262.5 21.4 15.5-8.1-25.1 21.3-15.6h-26.4l-8.2-25.2-8.2 25.2h-26.3l21.3 15.6-8.2 25 21.4-15.4" fill="#000"/>
+                                <g fill="#000">
+                                    <path d="m306.4 213.5-3.3 10 8.5 6.2h-10.5l-3.3 10.1-3.3-10H284l8.5-6.1-3.2-10 8.4 6.1 8.5-6.1m-105 4.6 8.4 6.2h-10.4l-3.3 10-3.3-10h-10.5l8.5-6.1-3.3-10 8.5 6.1 8.4-6.1-3.3 10m70 57-3.3 10 8.5 6.2h-10.5l-3.3 10.1-3.3-10h-10.5l8.5-6.1-3.2-10 8.4 6.1 8.5-6.1m-70-4.6 8.4 6.2h-10.4l-3.3 10-3.3-10h-10.5l8.5-6.1-3.3-10 8.5 6.1 8.4-6.1-3.3 10m-35-57 8.4 6.2h-10.4l-3.3 10-3.3-10H156l8.5-6.1-3.3-10 8.5 6.1 8.4-6.1-3.3 10m105 4.6-3.3 10 8.5 6.2h-10.5l-3.3 10.1-3.3-10H254l8.5-6.1-3.2-10 8.4 6.1 8.5-6.1m-70 57-3.3 10 8.5 6.2h-10.5l-3.3 10.1-3.3-10h-10.5l8.5-6.1-3.2-10 8.4 6.1 8.5-6.1m-70-4.6 8.4 6.2h-10.4l-3.3 10-3.3-10h-10.5l8.5-6.1-3.3-10 8.5 6.1 8.4-6.1-3.3 10m105 4.6-3.3 10 8.5 6.2h-10.5l-3.3 10.1-3.3-10h-10.5l8.5-6.1-3.2-10 8.4 6.1 8.5-6.1m0-62.2-3.3 10 8.5 6.2h-10.5l-3.3 10.1-3.3-10h-10.5l8.5-6.1-3.2-10 8.4 6.1 8.5-6.1m105 4.6-3.3 10 8.5 6.2h-10.5l-3.3 10.1-3.3-10h-10.5l8.5-6.1-3.2-10 8.4 6.1 8.5-6.1"/>
+                                </g>
+                            </svg>
+                            Shqipëri
+                        </h3>
                         <ul class="space-y-2">
                             <li class="flex items-start">
                                 <span class="text-red-600 mr-2">•</span>
@@ -87,7 +195,14 @@
                     </div>
                     
                     <div class="bg-gray-50 p-6 rounded-lg">
-                        <h3 class="text-xl font-bold text-black mb-3">🇽🇰 Kosovë</h3>
+                        <h3 class="text-xl font-bold text-black mb-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="flag-icon" viewBox="0 0 640 480">
+                                <path fill="#244aa5" d="M0 0h640v480H0z"/>
+                                <path fill="#d20000" d="M0 0h640v400H0z"/>
+                                <path fill="#ffcf00" d="m304 141.1 26.8 83.5h87.1l-70.4 51.5 26.7 83.5-70.2-51.3-70.2 51.3 26.7-83.5-70.4-51.5h87z"/>
+                            </svg>
+                            Kosovë
+                        </h3>
                         <ul class="space-y-2">
                             <li class="flex items-start">
                                 <span class="text-red-600 mr-2">•</span>
@@ -106,7 +221,12 @@
                 </div>
                 
                 <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
-                    <h3 class="font-bold text-yellow-900 mb-2">⏱️ Procesi i Dërgesës</h3>
+                    <h3 class="font-bold text-yellow-900 mb-2 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Procesi i Dërgesës
+                    </h3>
                     <ol class="list-decimal pl-6 space-y-2">
                         <li>Konfirmojmë porosinë tuaj brenda 24 orëve</li>
                         <li>Përgatisim produktet për dërgim</li>
@@ -127,17 +247,34 @@
             
             <div class="space-y-6 text-gray-700">
                 <div class="bg-green-50 border-l-4 border-green-500 p-4">
-                    <h3 class="font-bold text-green-900 mb-2">✓ Kushtet e Kthimit</h3>
-                    <p>Mund të ktheni produktin brenda <strong>14 ditëve</strong> nga marrja</p>
+                    <h3 class="font-bold text-green-900 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Kushtet e Kthimit
+                    </h3>
+                    <p class="mb-3">Mund të ktheni produktin brenda <strong>14 ditëve</strong> nga marrja</p>
+                    
+                    <h4 class="font-semibold text-green-900 mb-2">Produktet që Pranohen për Kthim:</h4>
+                    <ul class="space-y-2 pl-4">
+                        <li class="flex items-start">
+                            <span class="text-green-600 mr-2">✓</span>
+                            <span>Produkti duhet të jetë i papërdorur</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-600 mr-2">✓</span>
+                            <span>Në paketimin origjinal</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-600 mr-2">✓</span>
+                            <span>Me të gjitha aksesorët dhe dokumentacionin</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-600 mr-2">✓</span>
+                            <span>Pa dëmtime fizike</span>
+                        </li>
+                    </ul>
                 </div>
-                
-                <h3 class="text-xl font-bold text-black">Produktet që Pranohen për Kthim:</h3>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li>Produkti duhet të jetë i papërdorur</li>
-                    <li>Në paketimin origjinal</li>
-                    <li>Me të gjitha aksesorët dhe dokumentacionin</li>
-                    <li>Pa dëmtime fizike</li>
-                </ul>
                 
                 <h3 class="text-xl font-bold text-black mt-6">Si të Ktheni një Produkt:</h3>
                 <ol class="list-decimal pl-6 space-y-2">
@@ -147,13 +284,30 @@
                     <li>Pasi të verifikohet produkti, do t'ju rimbursojmë</li>
                 </ol>
                 
-                <div class="bg-gray-900 text-white p-6 rounded-lg mt-6">
-                    <h3 class="font-bold text-white mb-3">⚠️ Produktet që NUK Pranohen:</h3>
-                    <ul class="list-disc pl-6 space-y-2">
-                        <li>Produkte të përdorura ose të instaluara</li>
-                        <li>Produkte pa paketim origjinal</li>
-                        <li>Produkte të dëmtuara nga klienti</li>
-                        <li>Produkte të porositura posaçërisht</li>
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 mt-6">
+                    <h3 class="font-bold text-red-900 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Produktet që NUK Pranohen
+                    </h3>
+                    <ul class="space-y-2 pl-4">
+                        <li class="flex items-start">
+                            <span class="text-red-600 mr-2">✗</span>
+                            <span>Produkte të përdorura ose të instaluara</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-600 mr-2">✗</span>
+                            <span>Produkte pa paketim origjinal</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-600 mr-2">✗</span>
+                            <span>Produkte të dëmtuara nga klienti</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-600 mr-2">✗</span>
+                            <span>Produkte të porositura posaçërisht</span>
+                        </li>
                     </ul>
                 </div>
                 
@@ -169,10 +323,45 @@
     <!-- Footer -->
     <footer class="bg-black text-white py-8 md:py-12 mt-auto">
         <div class="container mx-auto px-4 md:px-6 max-w-7xl">
-            <div class="text-center">
-                <p class="text-gray-400">&copy; 2025 Auto Adeal. Të gjitha të drejtat e rezervuara.</p>
+            <div class="hidden md:flex flex-col items-center justify-center gap-8">
+                <div class="flex-shrink-0">
+                    <img src="/static/logo.png" alt="Auto Adeal" class="h-20 w-auto" onerror="this.style.display='none'">
+                </div>
+                
+                <div class="grid grid-cols-3 gap-x-16 gap-y-4 text-center text-sm">
+                    <div class="space-y-3">
+                        <a href="/privacy-policy" class="block hover:text-red-400 transition-colors">Privacy Policy</a>
+                        <a href="/terms-conditions" class="block hover:text-red-400 transition-colors">Terms & Conditions</a>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <a href="/#blog" class="block hover:text-red-400 transition-colors">Blog</a>
+                        <a href="/refund-policy" class="block hover:text-red-400 transition-colors">Refund & Shipping</a>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <a href="/about" class="block hover:text-red-400 transition-colors">About Us</a>
+                        <a href="/#contact" class="block hover:text-red-400 transition-colors">Contact Us</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="md:hidden">
+                <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-center text-sm">
+                    <a href="/privacy-policy" class="hover:text-red-400 transition-colors">Privacy Policy</a>
+                    <a href="/terms-conditions" class="hover:text-red-400 transition-colors">Terms & Conditions</a>
+                    <a href="/#blog" class="hover:text-red-400 transition-colors">Blog</a>
+                    <a href="/refund-policy" class="hover:text-red-400 transition-colors">Refund & Shipping</a>
+                    <a href="/about" class="hover:text-red-400 transition-colors">About Us</a>
+                    <a href="/#contact" class="hover:text-red-400 transition-colors">Contact Us</a>
+                </div>
+            </div>
+
+            <div class="text-center mt-8 pt-4 border-t border-gray-700 text-xs text-gray-400">
+                <p>&copy; 2025 Auto Adeal. Të gjitha të drejtat e rezervuara.</p>
             </div>
         </div>
     </footer>
+
 </body>
 </html>
