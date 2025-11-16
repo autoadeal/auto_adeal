@@ -336,10 +336,32 @@ def subcategory_page(slug):
     # Get all categories for sidebar
     categories = Category.query.all()
     
+    # Get spec types for filters
+    spec_types = []
+    for st in subcategory.spec_types:
+        choices = []
+        if st.choices:
+            choices = st.choices.split(',')
+        
+        # Override with predefined choices for known types
+        if st.name == 'E pershtatshme per':
+            choices = ['Volkswagen', 'BMW', 'Audi', 'Mercedes-Benz', 'Toyota', 'Ford', 
+                      'Skoda', 'Porsche', 'SEAT', 'Opel', 'Fiat', 'Range Rover', 
+                      'Tesla', 'Hyundai', 'Citroën', 'MINI', 'Honda', 'Peugeot', 
+                      'Renault', 'Nissan', 'Volvo', 'Mazda']
+        
+        spec_types.append({
+            'id': st.id,
+            'name': st.name,
+            'value_type': st.value_type,
+            'choices': choices
+        })
+    
     return render_template('subcategory.html', 
                          subcategory=subcategory, 
                          products=products,
-                         categories=categories)
+                         categories=categories,
+                         spec_types=spec_types)
 
 @app.route('/product/<slug>')
 def product_page(slug):

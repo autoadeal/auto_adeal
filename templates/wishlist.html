@@ -1,51 +1,34 @@
-<!doctype html>
-<html lang="sq" class="h-full">
+<!DOCTYPE html>
+<html lang="sq">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  
-  <title>Lista e Dëshirave - Auto Adeal</title>
-  <meta name="description" content="Ruaj produktet e tua të preferuara në listën e dëshirave. Bëj blerjen më të lehtë.">
-  
-  <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32.png">
-  
-  <link rel="canonical" href="https://autoadeal.com/wishlist">
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-E15BNGDX8F"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-E15BNGDX8F');
-  </script>
-  
-  <style>
-    .product-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    }
-    .product-card {
-      transition: all 0.3s ease;
-    }
-    @media (max-width: 767px) {
-      input[type="text"], select {
-        font-size: 16px !important;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Lista e Dëshirave - Auto Adeal</title>
+    <meta name="description" content="Produktet e preferuara në listën e dëshirave">
+    
+    <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @media (max-width: 767px) {
+            input[type="text"],
+            input[type="email"],
+            input[type="password"],
+            select,
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+    </style>
 </head>
-
-<body class="h-full bg-white">
-  <!-- Header -->
+<body class="bg-gray-50">
+    <!-- Header (same as subcategory.html) -->
     <header class="bg-black text-white py-3 md:py-4">
         <div class="container mx-auto px-4 md:px-6">
-            <!-- Mobile Layout -->
             <div class="md:hidden">
                 <div class="flex items-center justify-between mb-3">
-                    <button id="mobile-menu-btn" onclick="window.location.href='/'" class="text-white mr-3">
+                    <button onclick="window.location.href='/'" class="text-white mr-3">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
@@ -62,25 +45,25 @@
                             </svg>
                         </a>
                         
-                        <a href="/#wishlist" class="relative">
+                        <a href="/wishlist" class="relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                             </svg>
-                            <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                            <span id="wishlist-count-mobile" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
                         </a>
                         
-                        <a href="/#cart" class="relative">
+                        <a href="/cart" class="relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
                             </svg>
-                            <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                            <span id="cart-count-mobile" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
                         </a>
                     </div>
                 </div>
                 
                 <div class="flex">
-                    <input type="text" placeholder="Kërko..." class="flex-1 px-4 py-2 rounded-l-full text-black focus:outline-none text-sm">
-                    <button class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-r-full transition-colors">
+                    <input type="text" id="search-input-mobile" placeholder="Kërko..." class="flex-1 px-4 py-2 rounded-l-full text-black focus:outline-none text-sm">
+                    <button onclick="performSearch()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-r-full transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.6-5.65a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
@@ -88,7 +71,6 @@
                 </div>
             </div>
             
-            <!-- Desktop Layout -->
             <div class="hidden md:flex items-center justify-between">
                 <div class="flex items-center ml-8">
                     <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
@@ -98,8 +80,8 @@
                 
                 <div class="flex-1 max-w-md mx-8">
                     <div class="flex">
-                        <input type="text" placeholder="Kërko..." class="flex-1 px-4 py-2 rounded-l-full text-black focus:outline-none">
-                        <button class="bg-red-600 hover:bg-red-700 pl-6 pr-7 py-2 rounded-r-full transition-colors flex items-center">
+                        <input type="text" id="search-input" placeholder="Kërko..." class="flex-1 px-4 py-2 rounded-l-full text-black focus:outline-none">
+                        <button onclick="performSearch()" class="bg-red-600 hover:bg-red-700 pl-6 pr-7 py-2 rounded-r-full transition-colors flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.6-5.65a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
@@ -115,49 +97,59 @@
                         <span>Llogaria</span>
                     </a>
                     
-                    <a href="/#wishlist" class="relative hover:text-red-500 transition-colors">
+                    <a href="/wishlist" class="relative hover:text-red-500 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                         </svg>
-                        <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                        <span id="wishlist-count" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
                     </a>
                     
-                    <a href="/#cart" class="relative hover:text-red-500 transition-colors">
+                    <a href="/cart" class="relative hover:text-red-500 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
                         </svg>
-                        <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
                     </a>
                 </div>
             </div>
         </div>
     </header>
-  
-  <!-- Navigation -->
-  <nav class="bg-white border-b border-gray-200 py-4">
-    <div class="container mx-auto px-4 md:px-6">
-      <div class="flex justify-center space-x-6 md:space-x-24">
-        <a href="/" class="text-black hover:text-red-600 font-medium transition-colors">Kryefaqja</a>
-        <a href="/special-offers" class="text-black hover:text-red-600 font-medium transition-colors">Oferta</a>
-        <a href="/brands" class="text-black hover:text-red-600 font-medium transition-colors">Marka</a>
-        <a href="/contact" class="text-black hover:text-red-600 font-medium transition-colors">Na Kontaktoni</a>
-      </div>
-    </div>
-  </nav>
-  
-  <!-- Main Content -->
-  <main class="container mx-auto px-4 md:px-6 py-6 min-h-screen">
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl md:text-3xl font-bold text-black">Lista e Dëshirave</h1>
-      <button onclick="history.back()" class="text-red-600 hover:text-red-700 cursor-pointer bg-transparent border-none font-medium">← Kthehu</button>
-    </div>
-    
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6" id="wishlist-grid">
-      <!-- Wishlist items loaded by JS -->
-    </div>
-  </main>
-  
-  <!-- Footer -->
+
+    <nav class="bg-white border-b border-gray-200 py-4">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="flex justify-center space-x-6 md:space-x-24 overflow-x-auto">
+                <a href="/" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Kryefaqja</a>
+                <a href="/special-offers" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Oferta</a>
+                <a href="/brands" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Marka</a>
+                <a href="/contact" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Na Kontaktoni</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 md:px-6 py-8">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-black">Lista e Dëshirave</h1>
+            <a href="/" class="text-red-600 hover:text-red-700 font-medium">← Kthehu</a>
+        </div>
+        
+        <div id="wishlist-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Wishlist items will be loaded here -->
+        </div>
+        
+        <div id="empty-wishlist" class="hidden text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 mx-auto mb-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            <h2 class="text-2xl font-bold text-black mb-2">Lista e dëshirave është bosh</h2>
+            <p class="text-gray-600 mb-6">Ruaj produktet e tua të preferuara këtu!</p>
+            <a href="/" class="inline-block bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 transition-colors">
+                Fillo Blerjet
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer -->
     <footer class="bg-black text-white py-8 md:py-12 mt-auto">
         <div class="container mx-auto px-4 md:px-6 max-w-7xl">
             <div class="hidden md:flex flex-col items-center justify-center gap-8">
@@ -172,13 +164,13 @@
                     </div>
                     
                     <div class="space-y-3">
-                        <a href="/#blog" class="block hover:text-red-400 transition-colors">Blog</a>
+                        <a href="/blog" class="block hover:text-red-400 transition-colors">Blog</a>
                         <a href="/refund-policy" class="block hover:text-red-400 transition-colors">Refund & Shipping</a>
                     </div>
                     
                     <div class="space-y-3">
                         <a href="/about" class="block hover:text-red-400 transition-colors">About Us</a>
-                        <a href="/#contact" class="block hover:text-red-400 transition-colors">Contact Us</a>
+                        <a href="/contact" class="block hover:text-red-400 transition-colors">Contact Us</a>
                     </div>
                 </div>
             </div>
@@ -187,10 +179,10 @@
                 <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-center text-sm">
                     <a href="/privacy-policy" class="hover:text-red-400 transition-colors">Privacy Policy</a>
                     <a href="/terms-conditions" class="hover:text-red-400 transition-colors">Terms & Conditions</a>
-                    <a href="/#blog" class="hover:text-red-400 transition-colors">Blog</a>
+                    <a href="/blog" class="hover:text-red-400 transition-colors">Blog</a>
                     <a href="/refund-policy" class="hover:text-red-400 transition-colors">Refund & Shipping</a>
                     <a href="/about" class="hover:text-red-400 transition-colors">About Us</a>
-                    <a href="/#contact" class="hover:text-red-400 transition-colors">Contact Us</a>
+                    <a href="/contact" class="hover:text-red-400 transition-colors">Contact Us</a>
                 </div>
             </div>
             
@@ -199,220 +191,166 @@
             </div>
         </div>
     </footer>
-  
-  <!-- JavaScript -->
-  <script>
-    let cartItems = JSON.parse(localStorage.getItem('auto_adeal_cart') || '[]');
-    let wishlistItems = JSON.parse(localStorage.getItem('auto_adeal_wishlist') || '[]');
-    let currentUser = null;
-    
-    function loadUserFromStorage() {
-      const stored = localStorage.getItem('auto_adeal_user');
-      const loginTime = localStorage.getItem('auto_adeal_login_time');
-      if (stored && loginTime) {
-        const daysSinceLogin = (Date.now() - parseInt(loginTime)) / (1000 * 60 * 60 * 24);
-        if (daysSinceLogin < 730) {
-          try {
-            currentUser = JSON.parse(stored);
-            updateAuthUI();
-          } catch (e) {}
+
+    <script>
+        let cartItems = [];
+        let wishlistItems = [];
+
+        function loadCartFromStorage() {
+            try {
+                const stored = localStorage.getItem('auto_adeal_cart');
+                if (stored) cartItems = JSON.parse(stored);
+            } catch (e) {
+                cartItems = [];
+            }
         }
-      }
+
+        function saveCartToStorage() {
+            localStorage.setItem('auto_adeal_cart', JSON.stringify(cartItems));
+        }
+
+        function loadWishlistFromStorage() {
+            try {
+                const stored = localStorage.getItem('auto_adeal_wishlist');
+                if (stored) wishlistItems = JSON.parse(stored);
+            } catch (e) {
+                wishlistItems = [];
+            }
+        }
+
+        function saveWishlistToStorage() {
+            localStorage.setItem('auto_adeal_wishlist', JSON.stringify(wishlistItems));
+        }
+
+        function updateCartCount() {
+            const count = cartItems.length;
+            document.getElementById('cart-count').textContent = count;
+            const mobileCount = document.getElementById('cart-count-mobile');
+            if (mobileCount) mobileCount.textContent = count;
+        }
+
+        function updateWishlistCount() {
+            const count = wishlistItems.length;
+            document.getElementById('wishlist-count').textContent = count;
+            const mobileCount = document.getElementById('wishlist-count-mobile');
+            if (mobileCount) mobileCount.textContent = count;
+        }
+
+        function addToCart(productId, productName, productPrice, productImage) {
+            const existingItem = cartItems.find(item => item.productId === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+                showNotification('Sasia u ndryshua në shportë', 'success');
+            } else {
+                cartItems.push({
+                    productId,
+                    productName,
+                    productPrice,
+                    productImage,
+                    quantity: 1
+                });
+                showNotification('U shtua në shportë!', 'success');
+            }
+            
+            saveCartToStorage();
+            updateCartCount();
+            loadWishlist(); // Refresh to show cart status
+        }
+
+        function removeFromWishlist(productId) {
+            wishlistItems = wishlistItems.filter(item => item.productId !== productId);
+            saveWishlistToStorage();
+            updateWishlistCount();
+            loadWishlist();
+            showNotification('U hoq nga lista', 'success');
+        }
+
+        function loadWishlist() {
+            const grid = document.getElementById('wishlist-grid');
+            const emptyMsg = document.getElementById('empty-wishlist');
+            
+            if (wishlistItems.length === 0) {
+                grid.classList.add('hidden');
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+            
+            grid.classList.remove('hidden');
+            emptyMsg.classList.add('hidden');
+            grid.innerHTML = '';
+            
+            wishlistItems.forEach(item => {
+                const isInCart = cartItems.some(cartItem => cartItem.productId === item.productId);
+                
+                const card = document.createElement('div');
+                card.className= 'bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow';
+                card.innerHTML = `
+                <a href="/product/${item.productName.toLowerCase().replace(/\s+/g, '-')}-${item.productId}" class="block">
+                    <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden">
+                        <img src="${item.productImage}" alt="${item.productName}" class="w-full h-full object-contain p-2" loading="lazy">
+                    </div>
+                    <h4 class="font-semibold text-black mb-2 text-center text-sm md:text-base min-h-[40px] line-clamp-2">${item.productName}</h4>
+                    <p class="text-red-700 font-bold text-base md:text-lg text-center mb-4">${Math.round(item.productPrice)} ALL</p>
+                </a>
+                
+                <div class="flex space-x-2">
+                    <button onclick="removeFromWishlist(${item.productId})" class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors text-sm">
+                        Hiq
+                    </button>
+                    <button onclick="addToCart(${item.productId}, '${item.productName.replace(/'/g, "\\'")}', ${item.productPrice}, '${item.productImage}')" class="flex-1 ${isInCart ? 'bg-green-600' : 'bg-gray-600'} text-white py-2 rounded hover:bg-gray-700 transition-colors text-sm">
+                        ${isInCart ? '✓ Në Shportë' : 'Shto në Shportë'}
+                    </button>
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        });
     }
-    
-    function updateAuthUI() {
-      // Same as other pages
-    }
-    
-    function updateCartCount() {
-      document.getElementById('cart-count').textContent = cartItems.length;
-      document.getElementById('cart-count-mobile').textContent = cartItems.length;
-    }
-    
-    function updateWishlistCount() {
-      document.getElementById('wishlist-count').textContent = wishlistItems.length;
-      document.getElementById('wishlist-count-mobile').textContent = wishlistItems.length;
-    }
-    
-    function loadWishlistPage() {
-      const grid = document.getElementById('wishlist-grid');
-      grid.innerHTML = '';
-      
-      if (wishlistItems.length === 0) {
-        grid.innerHTML = `
-          <div class="col-span-full text-center py-12">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 mx-auto mb-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
-            <h2 class="text-2xl font-bold text-black mb-2">Lista e dëshirave është bosh</h2>
-            <p class="text-gray-600 mb-6">Ruaj produktet e tua të preferuara këtu!</p>
-            <a href="/" class="inline-block bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 transition-colors">
-              Fillo Blerjet
-            </a>
-          </div>
-        `;
-        return;
-      }
-      
-      wishlistItems.forEach(item => {
-        const isInCart = cartItems.some(cartItem => cartItem.productId === item.productId);
-        
-        const card = document.createElement('div');
-        card.classList.add('bg-white', 'border', 'border-gray-200', 'rounded-xl', 
-                          'p-4', 'shadow-sm', 'hover:shadow-md', 'transition-shadow', 'product-card');
-        
-        card.innerHTML = `
-          <a href="/product/${generateProductSlug(item.productName, item.productId)}" class="block">
-            <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden">
-              <img src="${item.productImage}" alt="${item.productName}" class="w-full h-full object-contain p-2" loading="lazy">
-            </div>
-            <h4 class="font-semibold text-black mb-2 text-center text-sm md:text-base line-clamp-2">${item.productName}</h4>
-            <p class="text-red-700 font-bold text-lg mb-4 text-center">${Math.round(item.productPrice)} ALL</p>
-          </a>
-          
-          <div class="flex space-x-2">
-            <button
-              onclick="event.stopPropagation(); toggleWishlist(${item.productId}, '${item.productName.replace(/'/g, "\\'")}', ${item.productPrice}, '${item.productImage}')"
-              class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors"
-            >
-              Hiq
-            </button>
-            <button
-              onclick="event.stopPropagation(); addToCart(${item.productId}, '${item.productName.replace(/'/g, "\\'")}', ${item.productPrice}, '${item.productImage}')"
-              class="flex-1 ${isInCart ? 'bg-green-600' : 'bg-gray-600'} text-white py-2 rounded hover:bg-gray-700 transition-colors"
-            >
-              ${isInCart ? '✓ Në Shportë' : 'Shto në Shportë'}
-            </button>
-          </div>
-        `;
-        
-        grid.appendChild(card);
-      });
-    }
-    
-    function generateProductSlug(name, id) {
-      const slug = name.toLowerCase()
-        .replace(/ë/g, 'e')
-        .replace(/ç/g, 'c')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-      return `${slug}-${id}`;
-    }
-    
-    function addToCart(productId, productName, productPrice, productImage) {
-      const existingItem = cartItems.find(item => item.productId === productId);
-      if (existingItem) {
-        existingItem.quantity += 1;
-      } else {
-        cartItems.push({ productId, productName, productPrice, productImage, quantity: 1 });
-      }
-      localStorage.setItem('auto_adeal_cart', JSON.stringify(cartItems));
-      updateCartCount();
-      loadWishlistPage(); // Refresh to show "In Cart" status
-      showNotification('U shtua në Shportë!', 'success');
-    }
-    
-    function toggleWishlist(productId, productName, productPrice, productImage) {
-      const existingIndex = wishlistItems.findIndex(item => item.productId === productId);
-      if (existingIndex !== -1) {
-        wishlistItems.splice(existingIndex, 1);
-        showNotification('U hoq nga Lista', 'success');
-      } else {
-        wishlistItems.push({ productId, productName, productPrice, productImage });
-        showNotification('U shtua në Listë!', 'success');
-      }
-      localStorage.setItem('auto_adeal_wishlist', JSON.stringify(wishlistItems));
-      updateWishlistCount();
-      loadWishlistPage();
-    }
-    
+
     function showNotification(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `fixed top-4 right-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.3s';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+        const toast = document.createElement('div');
+        toast.className = `fixed top-4 right-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
-    
+
     function performSearch() {
-      const query = document.getElementById('search-input').value.trim();
-      if (query) {
-        window.location.href = '/search?q=' + encodeURIComponent(query);
-      }
+        const query = document.getElementById('search-input').value || document.getElementById('search-input-mobile').value;
+        if (query.trim()) {
+            window.location.href = `/search?q=${encodeURIComponent(query)}`;
+        }
     }
-    
-    function toggleMobileMenu() {
-      const menu = document.getElementById('mobile-menu');
-      const overlay = document.getElementById('mobile-menu-overlay');
-      menu.classList.toggle('-translate-x-full');
-      overlay.classList.toggle('hidden');
-    }
-    
-    function closeMobileMenu() {
-      const menu = document.getElementById('mobile-menu');
-      const overlay = document.getElementById('mobile-menu-overlay');
-      menu.classList.add('-translate-x-full');
-      overlay.classList.add('hidden');
-    }
-    
-    function toggleAccountDropdown() {
-      const dropdown = document.getElementById('account-dropdown');
-      const dropdownMobile = document.getElementById('account-dropdown-mobile');
-      if (dropdown) dropdown.classList.toggle('hidden');
-      if (dropdownMobile) dropdownMobile.classList.toggle('hidden');
-    }
-    
-    function closeAccountDropdown() {
-      const dropdown = document.getElementById('account-dropdown');
-      const dropdownMobile = document.getElementById('account-dropdown-mobile');
-      if (dropdown) dropdown.classList.add('hidden');
-      if (dropdownMobile) dropdownMobile.classList.add('hidden');
-    }
-    
-    function showLoginModal() {
-      window.location.href = '/#login';
-    }
-    
-    function showSignupModal() {
-      window.location.href = '/#signup';
-    }
-    
-    function logout() {
-      currentUser = null;
-      localStorage.removeItem('auto_adeal_user');
-      localStorage.removeItem('auto_adeal_login_time');
-      updateAuthUI();
-      showNotification('Dalja u krye me sukses', 'success');
-    }
-    
-    document.addEventListener('click', function(event) {
-      const accountButton = document.getElementById('account-button');
-      const accountButtonMobile = document.getElementById('account-button-mobile');
-      const dropdown = document.getElementById('account-dropdown');
-      const dropdownMobile = document.getElementById('account-dropdown-mobile');
-      
-      const clickedAccountButton = accountButton && accountButton.contains(event.target);
-      const clickedAccountButtonMobile = accountButtonMobile && accountButtonMobile.contains(event.target);
-      const clickedDropdown = dropdown && dropdown.contains(event.target);
-      const clickedDropdownMobile = dropdownMobile && dropdownMobile.contains(event.target);
-      
-      if (!clickedAccountButton && !clickedAccountButtonMobile && !clickedDropdown && !clickedDropdownMobile) {
-        if (dropdown) dropdown.classList.add('hidden');
-        if (dropdownMobile) dropdownMobile.classList.add('hidden');
-      }
-    });
-    
+
     // Initialize
-    loadUserFromStorage();
-    updateCartCount();
-    updateWishlistCount();
-    loadWishlistPage();
-  </script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCartFromStorage();
+        loadWishlistFromStorage();
+        updateCartCount();
+        updateWishlistCount();
+        loadWishlist();
+        
+        const searchInput = document.getElementById('search-input');
+        const searchInputMobile = document.getElementById('search-input-mobile');
+        
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+        }
+        
+        if (searchInputMobile) {
+            searchInputMobile.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+        }
+    });
+</script>
 </body>
 </html>
