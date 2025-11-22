@@ -1853,6 +1853,7 @@ function renderMobileCategories() {
         const catDiv = document.createElement('div');
         catDiv.classList.add('mb-4', 'border-b', 'border-gray-200', 'pb-4');
 
+        // Category title
         const catTitle = document.createElement('h4');
         catTitle.classList.add('font-semibold', 'text-black', 'mb-2', 'cursor-pointer', 
                                'hover:text-red-600', 'transition-colors', 'text-base');
@@ -1860,31 +1861,24 @@ function renderMobileCategories() {
         catTitle.onclick = () => toggleMobileSubcategories(category.id);
         catDiv.appendChild(catTitle);
 
+        // Subcategory list
         const subList = document.createElement('div');
         subList.classList.add('space-y-1', 'ml-3', 'hidden');
         subList.id = `mobile-subcats-${category.id}`;
         
-        // Add subcategories
+        // Add subcategories first
         for (const sub of category.subcategories) {
             const btn = document.createElement('button');
             btn.textContent = sub.name;
             btn.classList.add('w-full', 'text-left', 'px-3', 'py-2', 'rounded', 
                              'text-black', 'hover:bg-gray-200', 'transition-colors', 'text-sm');
-            // OLD CODE - REPLACE THIS:
             btn.onclick = () => {
-                loadSubcategoryProducts(sub.id, sub.name);
-                closeMobileMenu();
+                window.location.href = `/subcategory/${sub.id}/${encodeURIComponent(sub.name)}`;
             };
-            
-            // NEW CODE - USE THIS INSTEAD:
-            btn.onclick = () => {
-                window.location.href = `/subcategory/${sub.slug || generateSlug(sub.name)}`;
-            };
-            
             subList.appendChild(btn);
         }
         
-        // All button
+        // Add "Te gjitha" button at the bottom
         const allBtn = document.createElement('button');
         allBtn.textContent = 'Te gjitha';
         allBtn.classList.add('w-full', 'text-left', 'px-3', 'py-2', 'rounded', 
