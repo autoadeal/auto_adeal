@@ -440,52 +440,6 @@ def wishlist_page():
     """Show wishlist page"""
     return render_template('wishlist.html')
 
-@app.route('/order-tracking')
-def order_tracking_page():
-    """Show order tracking page"""
-    return render_template('order_tracking.html')
-
-@app.route('/search')
-def search_page():
-    """Show search results page"""
-    query = request.args.get('q', '')
-    if not query:
-        return redirect('/')
-    
-    # Perform search using existing API logic
-    from app import api_search  # Reuse search logic
-    # For now, just pass query to template, let JS handle it
-    return render_template('search.html', query=query)
-
-@app.route('/contact')
-def contact_page():
-    """Show contact page"""
-    return render_template('contact.html')
-
-@app.route('/privacy-policy')
-def privacy_policy_page():
-    """Privacy policy page"""
-    return render_template('privacy_policy.html')
-
-@app.route('/terms-conditions')
-def terms_conditions_page():
-    """Terms and conditions page"""
-    return render_template('terms_conditions.html')
-
-@app.route('/refund-policy')
-def refund_policy_page():
-    """Refund and shipping policy page"""
-    return render_template('refund_policy.html')
-
-@app.route('/about')
-def about_page():
-    """About us page"""
-    return render_template('about.html')
-
-
-
-
-
 @app.route('/brand/<path:brand_name>')
 def redirect_to_brand(brand_name):
     """Redirect /brand/BMW to /#brand/BMW"""
