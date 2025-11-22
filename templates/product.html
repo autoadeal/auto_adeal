@@ -239,6 +239,23 @@
   </div>
 </header>
 
+<!-- Mobile Menu Overlay -->
+<div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[150] hidden" onclick="closeMobileMenu()"></div>
+<div id="mobile-menu" class="fixed top-0 left-0 h-full w-80 bg-white z-[200] transform -translate-x-full transition-transform duration-300 overflow-y-auto">
+  <div class="p-4 bg-black text-white flex items-center justify-between">
+    <h3 class="font-bold text-lg">Kategoritë</h3>
+    <button onclick="closeMobileMenu()" class="text-white">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+  <div id="mobile-categories-container" class="p-4">
+    <!-- Categories loaded by JS -->
+  </div>
+</div>
+<!-- HEADER - END -->
+
   <!-- Navigation Bar -->
   <nav class="bg-white border-b border-gray-200 py-4">
     <div class="container mx-auto px-4 md:px-6">
@@ -395,49 +412,51 @@
 {% endif %}
 
 </main>
+  <!-- COPY FOOTER from subcategory.html -->
   <!-- Footer -->
-    <footer class="bg-black text-white py-8 md:py-12 mt-auto">
-        <div class="container mx-auto px-4 md:px-6 max-w-7xl">
-            <div class="hidden md:flex flex-col items-center justify-center gap-8">
-                <div class="flex-shrink-0">
-                    <img src="/static/logo.png" alt="Auto Adeal" class="h-20 w-auto" onerror="this.style.display='none'">
-                </div>
-                
-                <div class="grid grid-cols-3 gap-x-16 gap-y-4 text-center text-sm">
-                    <div class="space-y-3">
-                        <a href="/privacy-policy" class="block hover:text-red-400 transition-colors">Privacy Policy</a>
-                        <a href="/terms-conditions" class="block hover:text-red-400 transition-colors">Terms & Conditions</a>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <a href="/#blog" class="block hover:text-red-400 transition-colors">Blog</a>
-                        <a href="/refund-policy" class="block hover:text-red-400 transition-colors">Refund & Shipping</a>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <a href="/about" class="block hover:text-red-400 transition-colors">About Us</a>
-                        <a href="/#contact" class="block hover:text-red-400 transition-colors">Contact Us</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="md:hidden">
-                <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-center text-sm">
-                    <a href="/privacy-policy" class="hover:text-red-400 transition-colors">Privacy Policy</a>
-                    <a href="/terms-conditions" class="hover:text-red-400 transition-colors">Terms & Conditions</a>
-                    <a href="/#blog" class="hover:text-red-400 transition-colors">Blog</a>
-                    <a href="/refund-policy" class="hover:text-red-400 transition-colors">Refund & Shipping</a>
-                    <a href="/about" class="hover:text-red-400 transition-colors">About Us</a>
-                    <a href="/#contact" class="hover:text-red-400 transition-colors">Contact Us</a>
-                </div>
-            </div>
-            
-            <div class="text-center mt-8 pt-4 border-t border-gray-700 text-xs text-gray-400">
-                <p>&copy; 2025 Auto Adeal. Të gjitha të drejtat e rezervuara.</p>
-            </div>
+  <footer class="bg-black text-white py-8 md:py-12 mt-auto">
+  <div class="container mx-auto px-4 md:px-6 max-w-7xl">
+    <!-- Desktop Layout -->
+    <div class="hidden md:flex flex-col items-center justify-center gap-8">
+      <div class="flex-shrink-0">
+        <img src="/static/logo.png" alt="Auto Adeal" class="h-20 w-auto" onerror="this.style.display='none'">
+      </div>
+      
+      <div class="grid grid-cols-3 gap-x-16 gap-y-4 text-center text-sm">
+        <div class="space-y-3">
+          <a href="/privacy-policy" class="block hover:text-red-400 transition-colors">Privacy Policy</a>
+          <a href="/terms-conditions" class="block hover:text-red-400 transition-colors">Terms & Conditions</a>
         </div>
-    </footer>
+        
+        <div class="space-y-3">
+          <a href="/blog" class="block hover:text-red-400 transition-colors">Blog</a>
+          <a href="/refund-policy" class="block hover:text-red-400 transition-colors">Refund & Shipping</a>
+        </div>
+        
+        <div class="space-y-3">
+          <a href="/about" class="block hover:text-red-400 transition-colors">About Us</a>
+          <a href="/contact" class="block hover:text-red-400 transition-colors">Contact Us</a>
+        </div>
+      </div>
+    </div>
     
+    <!-- Mobile Layout -->
+    <div class="md:hidden">
+      <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-center text-sm">
+        <a href="/privacy-policy" class="hover:text-red-400 transition-colors">Privacy Policy</a>
+        <a href="/terms-conditions" class="hover:text-red-400 transition-colors">Terms & Conditions</a>
+        <a href="/blog" class="hover:text-red-400 transition-colors">Blog</a>
+        <a href="/refund-policy" class="hover:text-red-400 transition-colors">Refund & Shipping</a>
+        <a href="/about" class="hover:text-red-400 transition-colors">About Us</a>
+        <a href="/contact" class="hover:text-red-400 transition-colors">Contact Us</a>
+      </div>
+    </div>
+    
+    <div class="text-center mt-8 pt-4 border-t border-gray-700 text-xs text-gray-400">
+      <p>&copy; 2025 Auto Adeal. Të gjitha të drejtat e rezervuara.</p>
+    </div>
+  </div>
+</footer>
   <!-- JavaScript -->
   <script>
     // Cart and Wishlist functionality
