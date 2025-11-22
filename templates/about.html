@@ -1,127 +1,676 @@
-html
-{% extends "base.html" %}
-
-{% block title %}Rreth Nesh - Auto Adeal | Kush Jemi Ne{% endblock %}
-{% block description %}Mëso më shumë për Auto Adeal. Misioni, vizoni dhe vlerat tona. Partneri juaj i besuar për pjesë makine{% endblock %}
-
-{% block content %}
-<main class="container mx-auto px-4 md:px-6 py-12 max-w-4xl">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-black">Rreth Nesh</h1>
-        <a href="/" class="text-red-600 hover:text-red-700 font-medium">
-            Kthehu në Kryefaqe →
-        </a>
-    </div>
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <div class="bg-white rounded-xl shadow-md p-8 mb-8">
-        <div class="flex flex-col md:flex-row items-center gap-8 mb-8">
-            <img src="/static/uploads/logo-white.png" alt="Auto Adeal" class="h-32 w-auto" onerror="this.src='/static/logo.png'">
-            <div>
-                <h2 class="text-2xl font-bold text-red-600 mb-4">Auto Adeal</h2>
-                <p class="text-gray-700 text-lg">Partneri juaj i besuar për pjesë dhe aksesorë makine në Shqipëri dhe Kosovë</p>
-            </div>
-        </div>
-        
-        <div class="space-y-6 text-gray-700">
-            <div>
-                <h3 class="text-xl font-bold text-black mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                    </svg>
-                    Misioni Ynë
-                </h3>
-                <p>Auto Adeal u themelua me qëllimin për të sjellë cilësi dhe besueshmëri në tregun e pjesëve të makinave në Shqipëri. Ne besojmë që çdo klient meriton produkte me cilësi të lartë, çmime konkurruese dhe shërbim profesional.</p>
+    <!-- SEO Meta Tags -->
+    <title>Rreth Nesh - Auto Adeal | Kush Jemi Ne</title>
+    <meta name="description" content="Mëso më shumë për Auto Adeal. Misioni, vizoni dhe vlerat tona. Partneri juaj i besuar për pjesë makine">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @media (max-width: 767px) {
+            input[type="text"],
+            input[type="email"],
+            input[type="password"],
+            select,
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-black text-white py-3 md:py-4">
+        <div class="container mx-auto px-4 md:px-6">
+            <!-- Mobile Layout -->
+            <div class="md:hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <button id="mobile-menu-btn" onclick="window.location.href='/'" class="text-white mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    
+                    <a href="/" class="flex items-center flex-1 h-8">
+                        <img src="/static/logo.png" alt="Logo" class="h-full w-auto object-contain">
+                    </a>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button id="account-button-mobile" onclick="toggleAccountDropdown()" class="flex items-center text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </button>
+                            
+                            <div id="account-dropdown-mobile" class="hidden absolute right-0 w-48 bg-white rounded-lg shadow-xl py-2" style="top: calc(100% + 8px); z-index: 300;">
+                                <div id="logged-out-options-mobile">
+                                    <button onclick="showLoginModal(); closeAccountDropdown();" class="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100 transition-colors">
+                                        Hyr
+                                    </button>
+                                    <button onclick="showSignupModal(); closeAccountDropdown();" class="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100 transition-colors">
+                                        Regjistrohu
+                                    </button>
+                                </div>
+                                
+                                <div id="logged-in-options-mobile" class="hidden">
+                                    <div class="px-4 py-2 border-b border-gray-200">
+                                        <p id="dropdown-user-name-mobile" class="font-semibold text-black text-sm"></p>
+                                        <p id="dropdown-user-email-mobile" class="text-xs text-gray-600 truncate"></p>
+                                    </div>
+                                    <button onclick="window.location.href='/order-tracking';" class="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100 transition-colors">
+                                        Porositë e Mia
+                                    </button>
+                                    <button onclick="logout(); closeAccountDropdown();" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors">
+                                        Dil
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <a href="/#wishlist" class="relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                        </a>
+                        
+                        <a href="/#cart" class="relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                            </svg>
+                            <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="flex">
+                    <input type="text" placeholder="Kërko..." class="flex-1 px-4 py-2 rounded-l-full text-black focus:outline-none text-sm">
+                    <button class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-r-full transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.6-5.65a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             
-            <div>
-                <h3 class="text-xl font-bold text-black mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                    </svg>
-                    Pse Auto Adeal?
-                </h3>
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-bold text-red-600 mb-2 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <!-- Desktop Layout -->
+            <div class="hidden md:flex items-center justify-between">
+                <div class="flex items-center ml-8">
+                    <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
+                        <img src="/static/logo.png" alt="Logo" class="h-12 md:h-14 w-auto max-w-[250px] object-contain">
+                    </a>
+                </div>
+                
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="flex">
+                        <input type="text" placeholder="Kërko..." class="flex-1 px-4 py-2 rounded-l-full text-black focus:outline-none">
+                        <button class="bg-red-600 hover:bg-red-700 pl-6 pr-7 py-2 rounded-r-full transition-colors flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.6-5.65a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
-                            Produkte Origjinale
-                        </h4>
-                        <p class="text-sm">100% produkte origjinale dhe të garantuara</p>
+                        </button>
                     </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-bold text-red-600 mb-2 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </div>
+                
+                <div class="flex items-center space-x-6">
+                    <div class="relative">
+                        <button id="account-button" onclick="toggleAccountDropdown()" class="flex items-center space-x-2 text-white hover:text-red-500 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
-                            Çmime të Ulëta
-                        </h4>
-                        <p class="text-sm">Çmimet më konkurruese në treg</p>
+                            <span id="account-label">Llogaria</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        
+                        <div id="account-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-[110]">
+                            <div id="logged-out-options">
+                                <button onclick="showLoginModal(); closeAccountDropdown();" class="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100 transition-colors">
+                                    Hyr
+                                </button>
+                                <button onclick="showSignupModal(); closeAccountDropdown();" class="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100 transition-colors">
+                                    Regjistrohu
+                                </button>
+                            </div>
+                            
+                            <div id="logged-in-options" class="hidden">
+                                <div class="px-4 py-2 border-b border-gray-200">
+                                    <p id="dropdown-user-name" class="font-semibold text-black text-sm"></p>
+                                    <p id="dropdown-user-email" class="text-xs text-gray-600 truncate"></p>
+                                </div>
+                                <button onclick="window.location.href='/order-tracking';" class="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100 transition-colors">
+                                    Porositë e Mia
+                                </button>
+                                <button onclick="logout(); closeAccountDropdown();" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors">
+                                    Dil
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-bold text-red-600 mb-2 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
-                            </svg>
-                            Dërgesa e Shpejtë
-                        </h4>
-                        <p class="text-sm">Dërgojmë në të gjithë Shqipërinë dhe Kosovën</p>
+                    
+                    <a href="/#wishlist" class="relative hover:text-red-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                    </a>
+                    
+                    <a href="/#cart" class="relative hover:text-red-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.2 6h12.8M10 19a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                        </svg>
+                        <span class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white border-b border-gray-200 py-4">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="flex justify-center space-x-6 md:space-x-24 overflow-x-auto">
+                <a href="/" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Kryefaqja</a>
+                <a href="/#special-offers" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Oferta</a>
+                <a href="/#brands" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Marka</a>
+                <a href="/#contact" class="text-black hover:text-red-600 font-medium transition-colors text-sm whitespace-nowrap">Na Kontaktoni</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 md:px-6 py-12 max-w-4xl">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-black">Rreth Nesh</h1>
+            <a href="/" class="text-red-600 hover:text-red-700 font-medium">
+                Kthehu →
+            </a>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-md p-8 mb-8">
+            <div class="flex flex-col md:flex-row items-center gap-8 mb-8">
+                <img src="/static/uploads/logo-white.png" alt="Auto Adeal" class="h-32 w-auto" onerror="this.src='/static/logo.png'">
+                <div>
+                    <h2 class="text-2xl font-bold text-red-600 mb-4">Auto Adeal</h2>
+                    <p class="text-gray-700 text-lg">Partneri juaj i besuar për pjesë dhe aksesorë makine në Shqipëri dhe Kosovë</p>
+                </div>
+            </div>
+            
+            <div class="space-y-6 text-gray-700">
+                <div>
+                    <h3 class="text-xl font-bold text-black mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                        </svg>
+                        Misioni Ynë
+                    </h3>
+                    <p>Auto Adeal u themelua me qëllimin për të sjellë cilësi dhe besueshmëri në tregun e pjesëve të makinave në Shqipëri. Ne besojmë që çdo klient meriton produkte me cilësi të lartë, çmime konkurruese dhe shërbim profesional.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold text-black mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                        </svg>
+                        Pse Auto Adeal?
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-red-600 mb-2 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Produkte Origjinale
+                            </h4>
+                            <p class="text-sm">100% produkte origjinale dhe të garantuara</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-red-600 mb-2 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Çmime të Ulëta
+                            </h4>
+                            <p class="text-sm">Çmimet më konkurruese në treg</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-red-600 mb-2 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                                </svg>
+                                Dërgesa e Shpejtë
+                            </h4>
+                            <p class="text-sm">Dërgojmë në të gjithë Shqipërinë dhe Kosovën</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-red-600 mb-2 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                </svg>
+                                Shërbim Profesional
+                            </h4>
+                            <p class="text-sm">Ekip i gatshëm për t'ju ndihmuar</p>
+                        </div>
                     </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-bold text-red-600 mb-2 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                            </svg>
-                            Shërbim Profesional
-                        </h4>
-                        <p class="text-sm">Ekip i gatshëm për t'ju ndihmuar</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold text-black mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+                        </svg>
+                        Çfarë Ofrojmë?
+                    </h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <span class="text-red-600 mr-2">•</span>
+                            <span>Pjesë për të gjitha markat: VW, BMW, Audi, Mercedes, Toyota, Ford dhe më shumë</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-600 mr-2">•</span>
+                            <span>Aksesorë të brendshëm dhe të jashtëm</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-600 mr-2">•</span>
+                            <span>Produkte për mirëmbajtje dhe pastrim</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-600 mr-2">•</span>
+                            <span>Ndriçim dhe elektrikë</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded">
+                    <h3 class="text-xl font-bold text-red-900 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Ku Na Gjeni
+                    </h3>
+                    <p class="mb-2"><strong>Vendndodhja:</strong> Sarandë, Shqipëri</p>
+                    <p class="mb-2"><strong>Tel:</strong> <a href="tel:+355685526714" class="text-red-700 hover:text-red-800 font-semibold">+355 68 552 6714</a></p>
+                    <p class="mb-2"><strong>Email:</strong> <a href="mailto:autoadeal@gmail.com" class="text-red-700 hover:text-red-800 font-semibold">autoadeal@gmail.com</a></p>
+                    <p><strong>Instagram:</strong> <a href="https://www.instagram.com/autoadeal" target="_blank" class="text-red-700 hover:text-red-800 font-semibold">@autoadeal</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login/Signup Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[300]" style="display: none;">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="auth-title" class="text-2xl font-bold text-black">Hyr</h2>
+                <button onclick="closeAuthModal()" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <input type="email" id="login-email" placeholder="Email" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+                    <input type="password" id="login-password" placeholder="Password" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+                    <button type="submit" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors">Hyr</button>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="button" onclick="showForgotPassword()" class="text-red-600 hover:text-red-700 text-sm">Ke harruar fjalëkalimin?</button>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="button" onclick="showSignupForm()" class="text-gray-600 hover:text-gray-800">Nuk ke llogari? Regjistrohu</button>
+                </div>
+            </form>
+            
+            <!-- Signup Form -->
+            <form id="signup-form" onsubmit="handleSignup(event)" style="display: none;">
+                <div class="space-y-4">
+                    <input type="text" id="signup-name" placeholder="Emri" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+                    <input type="text" id="signup-surname" placeholder="Mbiemri" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+                    <input type="email" id="signup-email" placeholder="Email" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+                    <input type="password" id="signup-password" placeholder="Password" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+                    <button type="submit" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors">Regjistrohu</button>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="button" onclick="showLoginForm()" class="text-gray-600 hover:text-gray-800">Ke një llogari? Hyr</button>
+                </div>
+            </form>
+            
+            <!-- Forgot Password Form -->
+            <form id="forgot-form" onsubmit="handleForgotPassword(event)" style="display: none;">
+                <div class="space-y-4">
+                    <p class="text-gray-600 text-sm">Shkruaj emailin tënd për të marrë udhëzimet e rikuperimit të fjalëkalimit.</p>
+                    <input type="email" id="forgot-email" placeholder="Email" required class="w-full px-4 py-2 border border-gray-300 rounded text-black">
+                    <button type="submit" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors">Dërgo emailin e rikuperimit</button>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="button" onclick="showLoginForm()" class="text-gray-600 hover:text-gray-800">← Kthehu te hyrja</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // User Management
+        let currentUser = null;
+
+        function loadUserFromStorage() {
+            const stored = localStorage.getItem('auto_adeal_user');
+            const loginTime = localStorage.getItem('auto_adeal_login_time');
+            
+            if (stored && loginTime) {
+                const daysSinceLogin = (Date.now() - parseInt(loginTime)) / (1000 * 60 * 60 * 24);
+                
+                if (daysSinceLogin < 730) {
+                    try {
+                        currentUser = JSON.parse(stored);
+                        updateAuthUI();
+                    } catch (e) {
+                        localStorage.removeItem('auto_adeal_user');
+                        localStorage.removeItem('auto_adeal_login_time');
+                    }
+                } else {
+                    localStorage.removeItem('auto_adeal_user');
+                    localStorage.removeItem('auto_adeal_login_time');
+                }
+            }
+        }
+
+        function saveUserToStorage(user) {
+            localStorage.setItem('auto_adeal_user', JSON.stringify(user));
+            localStorage.setItem('auto_adeal_login_time', Date.now().toString());
+        }
+
+        function updateAuthUI() {
+            const accountLabel = document.getElementById('account-label');
+            const loggedOutOptions = document.getElementById('logged-out-options');
+            const loggedInOptions = document.getElementById('logged-in-options');
+            const dropdownUserName = document.getElementById('dropdown-user-name');
+            const dropdownUserEmail = document.getElementById('dropdown-user-email');
+            
+            const loggedOutOptionsMobile = document.getElementById('logged-out-options-mobile');
+            const loggedInOptionsMobile = document.getElementById('logged-in-options-mobile');
+            const dropdownUserNameMobile = document.getElementById('dropdown-user-name-mobile');
+            const dropdownUserEmailMobile = document.getElementById('dropdown-user-email-mobile');
+            
+            if (currentUser) {
+                if (accountLabel) accountLabel.textContent = currentUser.name;
+                if (loggedOutOptions) loggedOutOptions.classList.add('hidden');
+                if (loggedInOptions) loggedInOptions.classList.remove('hidden');
+                if (dropdownUserName) dropdownUserName.textContent = `${currentUser.name} ${currentUser.surname}`;
+                if (dropdownUserEmail) dropdownUserEmail.textContent = currentUser.email;
+                
+                if (loggedOutOptionsMobile) loggedOutOptionsMobile.classList.add('hidden');
+                if (loggedInOptionsMobile) loggedInOptionsMobile.classList.remove('hidden');
+                if (dropdownUserNameMobile) dropdownUserNameMobile.textContent = `${currentUser.name} ${currentUser.surname}`;
+                if (dropdownUserEmailMobile) dropdownUserEmailMobile.textContent = currentUser.email;
+            } else {
+                if (accountLabel) accountLabel.textContent = 'Llogaria';
+                if (loggedOutOptions) loggedOutOptions.classList.remove('hidden');
+                if (loggedInOptions) loggedInOptions.classList.add('hidden');
+                
+                if (loggedOutOptionsMobile) loggedOutOptionsMobile.classList.remove('hidden');
+                if (loggedInOptionsMobile) loggedInOptionsMobile.classList.add('hidden');
+            }
+        }
+
+        function toggleAccountDropdown() {
+            const dropdown = document.getElementById('account-dropdown');
+            const dropdownMobile = document.getElementById('account-dropdown-mobile');
+            
+            if (dropdown) dropdown.classList.toggle('hidden');
+            if (dropdownMobile) dropdownMobile.classList.toggle('hidden');
+        }
+
+        function closeAccountDropdown() {
+            const dropdown = document.getElementById('account-dropdown');
+            const dropdownMobile = document.getElementById('account-dropdown-mobile');
+            
+            if (dropdown) dropdown.classList.add('hidden');
+            if (dropdownMobile) dropdownMobile.classList.add('hidden');
+        }
+
+        function showLoginModal() {
+            document.getElementById('auth-modal').style.display = 'flex';
+            document.getElementById('auth-title').textContent = 'Hyr';
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('forgot-form').style.display = 'none';
+        }
+
+        function showSignupModal() {
+            document.getElementById('auth-modal').style.display = 'flex';
+            document.getElementById('auth-title').textContent = 'Regjistrohu';
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('signup-form').style.display = 'block';
+            document.getElementById('forgot-form').style.display = 'none';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+            document.getElementById('login-form').reset();
+            document.getElementById('signup-form').reset();
+            document.getElementById('forgot-form').reset();
+        }
+
+        function showLoginForm() {
+            showLoginModal();
+        }
+
+        function showSignupForm() {
+            showSignupModal();
+        }
+
+        function showForgotPassword() {
+            document.getElementById('auth-title').textContent = 'Rivendos fjalëkalimin';
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('forgot-form').style.display = 'block';
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentUser = data.user;
+                    saveUserToStorage(data.user);
+                    updateAuthUI();
+                    closeAuthModal();
+                    showNotification('Hyra u krye me sukses!', 'success');
+                } else {
+                    showNotification(data.error || 'Hyra dështoi', 'error');
+                }
+            } catch (error) {
+                showNotification('Hyra dështoi. Provoni përsëri.', 'error');
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('signup-name').value;
+            const surname = document.getElementById('signup-surname').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, surname, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentUser = data.user;
+                    saveUserToStorage(data.user);
+                    updateAuthUI();
+                    closeAuthModal();
+                    showNotification('Llogaria u krijua me sukses!', 'success');
+                } else {
+                    showNotification(data.error || 'Regjistrimi dështoi', 'error');
+                }
+            } catch (error) {
+                showNotification('Regjistrimi dështoi. Provoni përsëri.', 'error');
+            }
+        }
+
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('forgot-email').value;
+            
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showNotification('Link për rikthimin e fjalëkalimit u dërgua në email', 'success');
+                    closeAuthModal();
+                } else {
+                    showNotification(data.error || 'Kerkesa deshtoi', 'error');
+                }
+            } catch (error) {
+                showNotification('Kerkesa deshtoi', 'error');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('auto_adeal_user');
+            localStorage.removeItem('auto_adeal_login_time');
+            updateAuthUI();
+            showNotification('Dalja u krye me sukses', 'success');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const accountButton = document.getElementById('account-button');
+            const accountButtonMobile = document.getElementById('account-button-mobile');
+            const dropdown = document.getElementById('account-dropdown');
+            const dropdownMobile = document.getElementById('account-dropdown-mobile');
+            
+            const clickedAccountButton = accountButton && accountButton.contains(event.target);
+            const clickedAccountButtonMobile = accountButtonMobile && accountButtonMobile.contains(event.target);
+            const clickedDropdown = dropdown && dropdown.contains(event.target);
+            const clickedDropdownMobile = dropdownMobile && dropdownMobile.contains(event.target);
+            
+            if (!clickedAccountButton && !clickedAccountButtonMobile && !clickedDropdown && !clickedDropdownMobile) {
+                if (dropdown) dropdown.classList.add('hidden');
+                if (dropdownMobile) dropdownMobile.classList.add('hidden');
+            }
+        });
+
+        // Initialize auth on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserFromStorage();
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-8 md:py-12 mt-auto">
+        <div class="container mx-auto px-4 md:px-6 max-w-7xl">
+            <div class="hidden md:flex flex-col items-center justify-center gap-8">
+                <div class="flex-shrink-0">
+                    <img src="/static/logo.png" alt="Auto Adeal" class="h-20 w-auto" onerror="this.style.display='none'">
+                </div>
+                
+                <div class="grid grid-cols-3 gap-x-16 gap-y-4 text-center text-sm">
+                    <div class="space-y-3">
+                        <a href="/privacy-policy" class="block hover:text-red-400 transition-colors">Privacy Policy</a>
+                        <a href="/terms-conditions" class="block hover:text-red-400 transition-colors">Terms & Conditions</a>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <a href="/#blog" class="block hover:text-red-400 transition-colors">Blog</a>
+                        <a href="/refund-policy" class="block hover:text-red-400 transition-colors">Refund & Shipping</a>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <a href="/about" class="block hover:text-red-400 transition-colors">About Us</a>
+                        <a href="/#contact" class="block hover:text-red-400 transition-colors">Contact Us</a>
                     </div>
                 </div>
             </div>
             
-            <div>
-                <h3 class="text-xl font-bold text-black mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
-                    </svg>
-                    Çfarë Ofrojmë?
-                </h3>
-                <ul class="space-y-2">
-                    <li class="flex items-start">
-                        <span class="text-red-600 mr-2">•</span>
-                        <span>Pjesë për të gjitha markat: VW, BMW, Audi, Mercedes, Toyota, Ford dhe më shumë</span>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-red-600 mr-2">•</span>
-                        <span>Aksesorë të brendshëm dhe të jashtëm</span>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-red-600 mr-2">•</span>
-                        <span>Produkte për mirëmbajtje dhe pastrim</span>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-red-600 mr-2">•</span>
-                        <span>Ndriçim dhe elektrikë</span>
-                    </li>
-                </ul>
+            <div class="md:hidden">
+                <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-center text-sm">
+                    <a href="/privacy-policy" class="hover:text-red-400 transition-colors">Privacy Policy</a>
+                    <a href="/terms-conditions" class="hover:text-red-400 transition-colors">Terms & Conditions</a>
+                    <a href="/#blog" class="hover:text-red-400 transition-colors">Blog</a>
+                    <a href="/refund-policy" class="hover:text-red-400 transition-colors">Refund & Shipping</a>
+                    <a href="/about" class="hover:text-red-400 transition-colors">About Us</a>
+                    <a href="/#contact" class="hover:text-red-400 transition-colors">Contact Us</a>
+                </div>
             </div>
             
-            <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded">
-                <h3 class="text-xl font-bold text-red-900 mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    Ku Na Gjeni
-                </h3>
-                <p class="mb-2"><strong>Vendndodhja:</strong> Sarandë, Shqipëri</p>
-                <p class="mb-2"><strong>Tel:</strong> <a href="tel:+355685526714" class="text-red-700 hover:text-red-800 font-semibold">+355 68 552 6714</a></p>
-                <p class="mb-2"><strong>Email:</strong> <a href="mailto:autoadeal@gmail.com" class="text-red-700 hover:text-red-800 font-semibold">autoadeal@gmail.com</a></p>
-                <p><strong>Instagram:</strong> <a href="https://www.instagram.com/autoadeal" target="_blank" class="text-red-700 hover:text-red-800 font-semibold">@autoadeal</a></p>
+            <div class="text-center mt-8 pt-4 border-t border-gray-700 text-xs text-gray-400">
+                <p>&copy; 2025 Auto Adeal. Të gjitha të drejtat e rezervuara.</p>
             </div>
         </div>
-    </div>
-</main>
-{% endblock %}
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button id="scroll-to-top-btn" type="button" aria-label="Scroll to top" style="position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: #dc2626; color: white; border: none; border-radius: 50%; cursor: pointer; z-index: 999999; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transform: scale(0.8); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; pointer-events: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+        </svg>
+    </button>
+
+    <script>
+        // Scroll to Top Button
+        (function() {
+            const scrollBtn = document.getElementById('scroll-to-top-btn');
+            if (!scrollBtn) return;
+
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 300) {
+                    scrollBtn.style.opacity = '1';
+                    scrollBtn.style.visibility = 'visible';
+                    scrollBtn.style.transform = 'scale(1)';
+                    scrollBtn.style.pointerEvents = 'auto';
+                } else {
+                    scrollBtn.style.opacity = '0';
+                    scrollBtn.style.visibility = 'hidden';
+                    scrollBtn.style.transform = 'scale(0.8)';
+                    scrollBtn.style.pointerEvents = 'none';
+                }
+            }, { passive: true });
+
+            scrollBtn.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        })();
+    </script>
+
+</body>
+</html>
