@@ -35,19 +35,6 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=72)
 import os
 
-# Jinja2 filters for templates:
-@app.template_filter('product_slug')
-def product_slug_filter(product):
-    """Jinja2 filter to generate product slug"""
-    return generate_product_slug(product.product_name, product.product_id)
-
-@app.template_filter('subcategory_slug')
-def subcategory_slug_filter(subcategory):
-    """Jinja2 filter to generate subcategory slug"""
-    if subcategory.slug:
-        return subcategory.slug
-    return generate_subcategory_slug(subcategory.subcategory_name)
-
 # Get database URL from environment variable
 DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('MYSQL_URL')
 
@@ -293,41 +280,19 @@ def create_customer_confirmation_email(order, cart_items, customer_email):
         html=html_content
     )
 
-def generate_product_slug(product_name, product_id):
-    """Generate URL-friendly slug: product-name-123"""
-    import re
-    # Remove special characters, convert to lowercase
-    slug = product_name.lower()
-    slug = slug.replace('ë', 'e').replace('ç', 'c').replace('ï', 'i')
-    slug = re.sub(r'[^a-z0-9\s-]', '', slug)
-    slug = re.sub(r'\s+', '-', slug)
-    slug = re.sub(r'-+', '-', slug)
-    slug = slug.strip('-')
-    return f"{slug}-{product_id}"
-
-def generate_subcategory_slug(subcategory_name):
-    """Generate URL-friendly slug for subcategory"""
-    import re
-    slug = subcategory_name.lower()
-    slug = slug.replace('ë', 'e').replace('ç', 'c').replace('ï', 'i')
-    slug = re.sub(r'[^a-z0-9\s-]', '', slug)
-    slug = re.sub(r'\s+', '-', slug)
-    slug = re.sub(r'-+', '-', slug)
-    return slug.strip('-')
-
 # ---------------- ROUTES ----------------
 @app.route('/subcategory/<int:subcategory_id>')
-@app.route('/subcategory/<slug>')
-def subcategory_page(slug):
-    """Show subcategory products page using slug"""
-    subcategory = Subcategory.query.filter_by(slug=slug).first_or_404()
+@app.route('/subcategory/<int:subcategory_id>/<path:name>')
+def subcategory_page(subcategory_id, name=None):
+    """Show subcategory products page"""
+    subcategory = Subcategory.query.get_or_404(subcategory_id)
     
     # Get all products in this subcategory (in stock first, then sold out)
-    in_stock = Product.query.filter_by(subcategory_id=subcategory.subcategory_id, sold_out=False).filter(
+    in_stock = Product.query.filter_by(subcategory_id=subcategory_id, sold_out=False).filter(
         Product.main_image.isnot(None), 
         Product.main_image != ''
     ).all()
-    sold_out = Product.query.filter_by(subcategory_id=subcategory.subcategory_id, sold_out=True).filter(
+    sold_out = Product.query.filter_by(subcategory_id=subcategory_id, sold_out=True).filter(
         Product.main_image.isnot(None), 
         Product.main_image != ''
     ).all()
@@ -341,15 +306,9 @@ def subcategory_page(slug):
                          products=products,
                          categories=categories)
 
-@app.route('/product/<slug>')
-def product_page(slug):
-    """Show product detail page using slug (format: product-name-ID)"""
-    # Extract ID from slug (last part after final dash)
-    try:
-        product_id = int(slug.split('-')[-1])
-    except (ValueError, IndexError):
-        abort(404)
-    
+@app.route('/product/<int:product_id>')
+def product_page(product_id):
+    """Show product detail page"""
     product = Product.query.get_or_404(product_id)
     
     # Get related products (same subcategory, exclude current)

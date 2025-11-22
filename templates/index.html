@@ -450,8 +450,7 @@ header input {
   <style>@view-transition { navigation: auto; }</style>
     
  </head>
- <body class="h-full bg-white overflow-x-hidden">
- <!-- Header -->
+ <body class="h-full bg-white overflow-x-hidden"><!-- Header -->
   <header class="bg-black text-white py-3 md:py-4" style="min-height: 64px; position: relative; z-index: 100;">
    <div class="container mx-auto px-4 md:px-6">
     <!-- Mobile Layout -->
@@ -1826,7 +1825,7 @@ function renderCategories() {
             btn.textContent = sub.name;
             btn.classList.add('w-full', 'text-left', 'px-3', 'py-2', 'rounded', 
                              'text-black', 'hover:bg-gray-200', 'transition-colors', 'text-sm');
-            btn.onclick = () => window.location.href = `/subcategory/${sub.slug || generateSlug(sub.name)}`;
+            btn.onclick = () => window.location.href = `/subcategory/${sub.id}/${encodeURIComponent(sub.name)}`;
             subList.appendChild(btn);
         }
         
@@ -2308,9 +2307,9 @@ function createProductCard(product, hideActions = false) {
             `;
         }
     }
-
+    
     card.innerHTML = `
-        <div onclick="window.location.href='/product/${generateProductSlug(productName, productId)}'" class="cursor-pointer flex-1 flex flex-col ${isSoldOut ? 'opacity-85' : ''}">
+        <div onclick="window.location.href='/product/${productId}'" class="cursor-pointer flex-1 flex flex-col ${isSoldOut ? 'opacity-85' : ''}">
             <div class="aspect-square mb-3 flex items-center justify-center bg-white rounded-lg overflow-hidden relative">
                 <img src="${imageURL}" alt="${productName} - Pjese Makine Auto Adeal" class="w-full h-full object-contain p-2 ${isSoldOut ? 'grayscale opacity-60' : ''}" loading="lazy">
                 ${isSoldOut ? '<div class="absolute inset-0 flex items-center justify-center bg-grey bg-opacity-20"><span class="bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-xs md:text-sm shadow-lg">SOLD OUT</span></div>' : ''}
@@ -3773,29 +3772,6 @@ function goBack() {
 
 function showWishlist() {
     showPage('wishlist');
-}
-
-// More helper functions
-
-function generateSlug(text) {
-    return text.toLowerCase()
-        .replace(/ë/g, 'e')
-        .replace(/ç/g, 'c')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-}
-
-function generateProductSlug(name, id) {
-    const slug = name.toLowerCase()
-        .replace(/ë/g, 'e')
-        .replace(/ç/g, 'c')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-    return `${slug}-${id}`;
 }
 
 // ============================================
